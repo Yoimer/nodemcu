@@ -1,13 +1,13 @@
 /*
- Sends SMS Using NODEMCU and SIM800L C oroboard
+  Sends SMS Using NODEMCU and SIM800L C oroboard
 
 */
 
 //int onModulePin = 13;
 int8_t answer;
-char aux_string[30];
-char phone_number[] = "04168262667"; // ********* is the number to call
-char sms_text[]="Test-Arduino-Hello World";
+//char aux_string[30];
+//char phone_number[] = "04168262667"; // ********* is the number to call
+//char sms_text[] = "Test-Arduino-Hello World";
 
 void setup() {
 
@@ -21,34 +21,36 @@ void setup() {
   Serial.println("Connecting to the network..."); // AT+CFUN=1\r\n","OK\r\n
 
   //while (sendATcommand("AT+CFUN=1\r\n", "OK\r\n", 2000) == 0 );
-  while( (sendATcommand("AT+CREG?", "+CREG: 0,1", 5000) || 
-            sendATcommand("AT+CREG?", "+CREG: 0,5", 5000)) == 0 );
+  while ( (sendATcommand("AT+CREG?", "+CREG: 0,1", 5000) ||
+           sendATcommand("AT+CREG?", "+CREG: 0,5", 5000)) == 0 );
 
-  Serial.print("Setting SMS mode...");
-  sendATcommand("AT+CMGF=1", "OK", 5000);    // sets the SMS mode to text
-  Serial.println("Sending SMS");
+   sendSMS("04168262667", "hola mundo");         
 
-  sprintf(aux_string, "AT+CMGS=\"%s\"", phone_number);
-  answer = sendATcommand(aux_string, ">", 20000);    // send the SMS number
-  if (answer == 1)
-  {
-    Serial.println(sms_text);
-    Serial.write(0x1A);
-    answer = sendATcommand("", "OK", 20000);
-    if (answer == 1)
-    {
-      Serial.print("Sent ");
-    }
-    else
-    {
-      Serial.print("error ");
-    }
-  }
-  else
-  {
-    Serial.print("error ");
-    Serial.println(answer, DEC);
-  }
+//  Serial.print("Setting SMS mode...");
+//  sendATcommand("AT+CMGF=1", "OK", 5000);    // sets the SMS mode to text
+//  Serial.println("Sending SMS");
+//
+//  sprintf(aux_string, "AT+CMGS=\"%s\"", phone_number);
+//  answer = sendATcommand(aux_string, ">", 20000);    // send the SMS number
+//  if (answer == 1)
+//  {
+//    Serial.println(sms_text);
+//    Serial.write(0x1A);
+//    answer = sendATcommand("", "OK", 20000);
+//    if (answer == 1)
+//    {
+//      Serial.print("Sent ");
+//    }
+//    else
+//    {
+//      Serial.print("error ");
+//    }
+//  }
+//  else
+//  {
+//    Serial.print("error ");
+//    Serial.println(answer, DEC);
+//  }
 
 }
 
@@ -111,3 +113,37 @@ int8_t sendATcommand(char* ATcommand, char* expected_answer, unsigned int timeou
 
   return answer;
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int sendSMS(char *phone_number, char *sms_text) {
+
+  char aux_string[30];
+  //char phone_number[] = "04168262667"; // ********* is the number to call
+  //char sms_text[] = "Test-Arduino-Hello World";
+  Serial.print("Setting SMS mode...");
+  sendATcommand("AT+CMGF=1", "OK", 5000);    // sets the SMS mode to text
+  Serial.println("Sending SMS");
+
+  sprintf(aux_string, "AT+CMGS=\"%s\"", phone_number);
+  answer = sendATcommand(aux_string, ">", 20000);    // send the SMS number
+  if (answer == 1)
+  {
+    Serial.println(sms_text);
+    Serial.write(0x1A);
+    answer = sendATcommand("", "OK", 20000);
+    if (answer == 1)
+    {
+      Serial.print("Sent ");
+    }
+    else
+    {
+      Serial.print("error ");
+    }
+  }
+  else
+  {
+    Serial.print("error ");
+    Serial.println(answer, DEC);
+  }
+  return answer;
+}
+
