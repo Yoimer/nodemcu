@@ -21,11 +21,11 @@ void setup() {
 
   while ( (sendATcommand("AT+CREG?", "+CREG: 0,1", 5000) ||
            sendATcommand("AT+CREG?", "+CREG: 0,5", 5000)) == 0 );
-           
+
   sendATcommand("AT+CMGF=1", "OK", 5000);
   sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
 
-  
+
   //sendSMS("04168262667", "hola mundo");
   //  sendATcommand("AT+CMGF=1", "OK", 5000);
   //  answer = sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
@@ -64,7 +64,7 @@ void setup() {
 void loop() {
 
   //waitForResp(const char *resp, unsigned int timeout)
-  waitForResp("LED OFF", 5000);
+  waitForResp("LED OFF\r\n", 5000);
 
   //readSMS();
 
@@ -254,14 +254,32 @@ int waitForResp(const char *resp, unsigned int timeout)
   int sum = 0;
   unsigned long timerStart, timerEnd;
   timerStart = millis();
-
+  char currentLine[500] = "";
+  int currentLineIndex = 0;
+  //Clear char array for next line of read
+  for ( int i = 0; i < sizeof(currentLine);  ++i )
+  {
+    currentLine[i] = (char)0;
+  }
+  String lastLine = "";
   while (1) {
     if (Serial.available()) {
       char c = Serial.read();
+      currentLine[currentLineIndex] = c;
+      currentLineIndex = currentLineIndex + 1;
       sum = (c == resp[sum]) ? sum + 1 : 0;
       if (sum == len)
       {
-        Serial.println(sum);
+        ////Serial.println(sum);
+        lastLine = String(currentLine);
+        Serial.println(lastLine);
+        lastLine = "";
+        //Clear char array for next line of read
+        for ( int i = 0; i < sizeof(currentLine);  ++i )
+        {
+          currentLine[i] = (char)0;
+        }
+        currentLineIndex = 0;
         break;
       }
       //if (sum == len)break;
