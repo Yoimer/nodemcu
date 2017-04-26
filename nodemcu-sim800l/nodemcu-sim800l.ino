@@ -5,9 +5,8 @@
 
 //int onModulePin = 13;
 int8_t answer;
-//char aux_string[30];
-//char phone_number[] = "04168262667"; // ********* is the number to call
-//char sms_text[] = "Test-Arduino-Hello World";
+int x;
+char SMS[200];
 
 void setup() {
 
@@ -20,43 +19,88 @@ void setup() {
 
   Serial.println("Connecting to the network..."); // AT+CFUN=1\r\n","OK\r\n
 
-  //while (sendATcommand("AT+CFUN=1\r\n", "OK\r\n", 2000) == 0 );
   while ( (sendATcommand("AT+CREG?", "+CREG: 0,1", 5000) ||
            sendATcommand("AT+CREG?", "+CREG: 0,5", 5000)) == 0 );
 
-   sendSMS("04168262667", "hola mundo");         
-
-//  Serial.print("Setting SMS mode...");
-//  sendATcommand("AT+CMGF=1", "OK", 5000);    // sets the SMS mode to text
-//  Serial.println("Sending SMS");
-//
-//  sprintf(aux_string, "AT+CMGS=\"%s\"", phone_number);
-//  answer = sendATcommand(aux_string, ">", 20000);    // send the SMS number
-//  if (answer == 1)
-//  {
-//    Serial.println(sms_text);
-//    Serial.write(0x1A);
-//    answer = sendATcommand("", "OK", 20000);
-//    if (answer == 1)
-//    {
-//      Serial.print("Sent ");
-//    }
-//    else
-//    {
-//      Serial.print("error ");
-//    }
-//  }
-//  else
-//  {
-//    Serial.print("error ");
-//    Serial.println(answer, DEC);
-//  }
+  //sendSMS("04168262667", "hola mundo");
+  //  sendATcommand("AT+CMGF=1", "OK", 5000);
+  //  answer = sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
+  //  if (answer == 1)
+  //  {
+  //    answer = 0;
+  //    while (Serial.available() == 0);
+  //    // this loop reads the data of the SMS
+  //    do {
+  //      // if there are data in the UART input buffer, reads it and checks for the asnwer
+  //      if (Serial.available() > 0) {
+  //        SMS[x] = Serial.read();
+  //        x++;
+  //        // check if the desired answer (OK) is in the response of the module
+  //        if (strstr(SMS, "OK") != NULL)
+  //        {
+  //          answer = 1;
+  //        }
+  //      }
+  //    } while (answer == 0);   // Waits for the asnwer with time out
+  //
+  //    SMS[x] = '\0';
+  //
+  //    Serial.print(SMS);
+  //
+  //  }
+  //  else
+  //  {
+  //    Serial.print("error ");
+  //    Serial.println(answer, DEC);
+  //  }
 
 }
 
 
 void loop() {
+
+  readSMS();
+
+
+  //  sendATcommand("AT+CMGF=1", "OK", 5000);
+  //  answer = sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
+  //  if (answer == 1)
+  //  {
+  //    answer = 0;
+  //    while (Serial.available() == 0);
+  //    // this loop reads the data of the SMS
+  //    do {
+  //      // if there are data in the UART input buffer, reads it and checks for the asnwer
+  //      if (Serial.available() > 0) {
+  //        SMS[x] = Serial.read();
+  //        x++;
+  //        // check if the desired answer (OK) is in the response of the module
+  //        if (strstr(SMS, "OK") != NULL)
+  //        {
+  //          answer = 1;
+  //        }
+  //      }
+  //    } while (answer == 0);   // Waits for the asnwer with time out
+  //
+  //    SMS[x] = '\0';
+  //
+  //    Serial.print(SMS);
+  //
+  //    memset(SMS, '\0', 200);    // Initialize the string
+  //
+  //    while (Serial.available()) { //Cleans the input buffer
+  //      Serial.read();
+  //    }
+  //
+  //  }
+  //  else
+  //  {
+  //    Serial.print("error ");
+  //    Serial.println(answer, DEC);
+  //  }
+
 }
+
 ///////////////////////////////////////////////////////
 void power_on() {
 
@@ -145,5 +189,55 @@ int sendSMS(char *phone_number, char *sms_text) {
     Serial.println(answer, DEC);
   }
   return answer;
+}
+//////////////////////////////////////////////////////////////////////////
+void readSMS() {
+  sendATcommand("AT+CMGF=1", "OK", 5000);
+  answer = sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
+  if (answer == 1)
+  {
+    answer = 0;
+    x = 0;
+    while (Serial.available() == 0);
+    // this loop reads the data of the SMS
+    do {
+      // if there are data in the UART input buffer, reads it and checks for the asnwer
+      if (Serial.available() > 0) {
+        SMS[x] = Serial.read();
+        x++;
+        // check if the desired answer (OK) is in the response of the module
+        if (strstr(SMS, "OK") != NULL)
+        {
+          answer = 1;
+        }
+        if (strstr(SMS, "LED") != NULL)
+        {
+          answer = 2;
+        }
+      }
+    } while (answer == 0);   // Waits for the asnwer with time out
+
+    SMS[x] = '\0';
+
+    Serial.println(SMS);
+
+    //memset(SMS, '\0', 200);    // Initialize the string
+    
+    x = 0;
+    for (x = 0; x < 200; ++x){
+      SMS[x] = '\0';
+    }
+
+    while (Serial.available()) { //Cleans the input buffer
+      Serial.read();
+    }
+
+  }
+  else
+  {
+    Serial.print("error ");
+    Serial.println(answer, DEC);
+  }
+
 }
 
