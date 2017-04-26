@@ -21,7 +21,11 @@ void setup() {
 
   while ( (sendATcommand("AT+CREG?", "+CREG: 0,1", 5000) ||
            sendATcommand("AT+CREG?", "+CREG: 0,5", 5000)) == 0 );
+           
+  sendATcommand("AT+CMGF=1", "OK", 5000);
+  sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
 
+  
   //sendSMS("04168262667", "hola mundo");
   //  sendATcommand("AT+CMGF=1", "OK", 5000);
   //  answer = sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
@@ -59,7 +63,10 @@ void setup() {
 
 void loop() {
 
-  readSMS();
+  //waitForResp(const char *resp, unsigned int timeout)
+  waitForResp("LED OFF", 5000);
+
+  //readSMS();
 
 
   //  sendATcommand("AT+CMGF=1", "OK", 5000);
@@ -222,9 +229,9 @@ void readSMS() {
     Serial.println(SMS);
 
     //memset(SMS, '\0', 200);    // Initialize the string
-    
+
     x = 0;
-    for (x = 0; x < 200; ++x){
+    for (x = 0; x < 200; ++x) {
       SMS[x] = '\0';
     }
 
@@ -239,5 +246,36 @@ void readSMS() {
     Serial.println(answer, DEC);
   }
 
+}
+//////////////////////////////////////////////////////////////////////////////////////////////
+int waitForResp(const char *resp, unsigned int timeout)
+{
+  int len = strlen(resp);
+  int sum = 0;
+  unsigned long timerStart, timerEnd;
+  timerStart = millis();
+
+  while (1) {
+    if (Serial.available()) {
+      char c = Serial.read();
+      sum = (c == resp[sum]) ? sum + 1 : 0;
+      if (sum == len)
+      {
+        Serial.println(sum);
+        break;
+      }
+      //if (sum == len)break;
+    }
+    timerEnd = millis();
+    if (timerEnd - timerStart > 1000 * timeout) {
+      return -1;
+    }
+  }
+
+  while (Serial.available()) {
+    Serial.read();
+  }
+
+  return 0;
 }
 
