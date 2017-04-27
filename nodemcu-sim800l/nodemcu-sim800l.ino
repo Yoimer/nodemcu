@@ -67,10 +67,12 @@ void loop()
             {
               //ledStatus = 1;
               digitalWrite(LED_BUILTIN, LOW);
+              sendSMS("04168262667", "LED IS ON");
             } else if(lastLine.indexOf("LED OFF") >= 0) 
             {
               //ledStatus = 0;
               digitalWrite(LED_BUILTIN, HIGH);
+              sendSMS("04168262667", "LED IS OFF");
             }
              
             nextLineIsMessage = false;
@@ -167,16 +169,16 @@ int sendSMS(char *phone_number, char *sms_text) {
     answer = sendATcommand("", "OK", 20000);
     if (answer == 1)
     {
-      Serial.print("Sent ");
+      Serial.println("Sent ");
     }
     else
     {
-      Serial.print("error ");
+      Serial.println("error ");
     }
   }
   else
   {
-    Serial.print("error ");
+    Serial.println("error ");
     Serial.println(answer, DEC);
   }
   return answer;
