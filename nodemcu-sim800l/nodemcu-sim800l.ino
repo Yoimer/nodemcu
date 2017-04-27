@@ -8,9 +8,19 @@ int8_t answer;
 int x;
 char SMS[200];
 
+ 
+//Variable to hold last line of serial output from SIM800
+char currentLine[500] = "";
+int currentLineIndex = 0;
+ 
+//Boolean to be set to true if message notificaion was found and next
+//line of serial output is the actual SMS message content
+bool nextLineIsMessage = false;
+
 void setup() {
 
   //pinMode(onModulePin, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   // initialize serial communications at 115200 bps:
   Serial.begin(115200);
   Serial.println("Starting...");
@@ -24,88 +34,62 @@ void setup() {
 
   sendATcommand("AT+CMGF=1", "OK", 5000);
   sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
-
-
-  //sendSMS("04168262667", "hola mundo");
-  //  sendATcommand("AT+CMGF=1", "OK", 5000);
-  //  answer = sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
-  //  if (answer == 1)
-  //  {
-  //    answer = 0;
-  //    while (Serial.available() == 0);
-  //    // this loop reads the data of the SMS
-  //    do {
-  //      // if there are data in the UART input buffer, reads it and checks for the asnwer
-  //      if (Serial.available() > 0) {
-  //        SMS[x] = Serial.read();
-  //        x++;
-  //        // check if the desired answer (OK) is in the response of the module
-  //        if (strstr(SMS, "OK") != NULL)
-  //        {
-  //          answer = 1;
-  //        }
-  //      }
-  //    } while (answer == 0);   // Waits for the asnwer with time out
-  //
-  //    SMS[x] = '\0';
-  //
-  //    Serial.print(SMS);
-  //
-  //  }
-  //  else
-  //  {
-  //    Serial.print("error ");
-  //    Serial.println(answer, DEC);
-  //  }
-
 }
 
 
-void loop() {
-
-  //waitForResp(const char *resp, unsigned int timeout)
-  waitForResp("LED OFF\r\n", 5000);
-
-  //readSMS();
-
-
-  //  sendATcommand("AT+CMGF=1", "OK", 5000);
-  //  answer = sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
-  //  if (answer == 1)
-  //  {
-  //    answer = 0;
-  //    while (Serial.available() == 0);
-  //    // this loop reads the data of the SMS
-  //    do {
-  //      // if there are data in the UART input buffer, reads it and checks for the asnwer
-  //      if (Serial.available() > 0) {
-  //        SMS[x] = Serial.read();
-  //        x++;
-  //        // check if the desired answer (OK) is in the response of the module
-  //        if (strstr(SMS, "OK") != NULL)
-  //        {
-  //          answer = 1;
-  //        }
-  //      }
-  //    } while (answer == 0);   // Waits for the asnwer with time out
-  //
-  //    SMS[x] = '\0';
-  //
-  //    Serial.print(SMS);
-  //
-  //    memset(SMS, '\0', 200);    // Initialize the string
-  //
-  //    while (Serial.available()) { //Cleans the input buffer
-  //      Serial.read();
-  //    }
-  //
-  //  }
-  //  else
-  //  {
-  //    Serial.print("error ");
-  //    Serial.println(answer, DEC);
-  //  }
-
+void loop()
+{
+  //If there is serial output from SIM800
+  if(Serial.available() > 0)
+  {
+    char lastCharRead = Serial.read();
+    //Read each character from serial output until \r or \n is reached (which denotes end of line)
+    if(lastCharRead == '\r' || lastCharRead == '\n')
+    {
+        String lastLine = String(currentLine);
+         
+        //If last line read +CMT, New SMS Message Indications was received.
+        //Hence, next line is the message content.
+        if(lastLine.startsWith("+CMT:"))
+        {
+           
+          Serial.println(lastLine);
+          nextLineIsMessage = true;
+        } 
+        else if (lastLine.length() > 0) 
+        {
+          if(nextLineIsMessage) 
+          {
+            Serial.println(lastLine);
+             
+            //Read message content and set status according to SMS content
+            if(lastLine.indexOf("LED ON") >= 0)
+            {
+              //ledStatus = 1;
+              digitalWrite(LED_BUILTIN, LOW);
+            } else if(lastLine.indexOf("LED OFF") >= 0) 
+            {
+              //ledStatus = 0;
+              digitalWrite(LED_BUILTIN, HIGH);
+            }
+             
+            nextLineIsMessage = false;
+          }
+           
+        }
+         
+        //Clear char array for next line of read
+        for( int i = 0; i < sizeof(currentLine);  ++i )
+        {
+         currentLine[i] = (char)0;
+        }
+        currentLineIndex = 0;
+    } 
+    else 
+    {
+      currentLine[currentLineIndex++] = lastCharRead;
+    }
+  }
 }
 
 ///////////////////////////////////////////////////////
