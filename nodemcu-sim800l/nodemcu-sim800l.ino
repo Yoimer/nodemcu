@@ -6,16 +6,17 @@
 //int onModulePin = 13;
 int8_t answer;
 int x;
-char SMS[200];
 
- 
-//Variable to hold last line of serial output from SIM800
+////Variable to hold last line of serial output from SIM800
 char currentLine[500] = "";
 int currentLineIndex = 0;
- 
+
 //Boolean to be set to true if message notificaion was found and next
 //line of serial output is the actual SMS message content
 bool nextLineIsMessage = false;
+
+//Boolean to be set to true if number is found on contact
+bool isIncontact = false;
 
 void setup() {
 
@@ -27,67 +28,82 @@ void setup() {
   power_on();
   delay(3000);
 
-  Serial.println("Connecting to the network..."); // AT+CFUN=1\r\n","OK\r\n
+  Serial.println("Connecting to the network...");
 
+  //checks network registration
   while ( (sendATcommand("AT+CREG?", "+CREG: 0,1", 5000) ||
            sendATcommand("AT+CREG?", "+CREG: 0,5", 5000)) == 0 );
 
+  //sets  SMS mode to ASCII
   sendATcommand("AT+CMGF=1", "OK", 5000);
+
+  //new message indication to Terminal Equipment TE.
   sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
+
+  //sets call notification
+  sendATcommand("AT+CLIP=1\r\n", "OK", 5000);
+
 }
 
 
 void loop()
 {
   //If there is serial output from SIM800
-  if(Serial.available() > 0)
+  if (Serial.available() > 0)
   {
     char lastCharRead = Serial.read();
     //Read each character from serial output until \r or \n is reached (which denotes end of line)
-    if(lastCharRead == '\r' || lastCharRead == '\n')
+    if (lastCharRead == '\r' || lastCharRead == '\n')
     {
-        String lastLine = String(currentLine);
-         
-        //If last line read +CMT, New SMS Message Indications was received.
-        //Hence, next line is the message content.
-        if(lastLine.startsWith("+CMT:"))
+      String lastLine = String(currentLine);
+
+      //If last line read +CMT, New SMS Message Indications was received.
+      //Hence, next line is the message content.
+      if (lastLine.startsWith("+CMT:"))
+      {
+
+        Serial.println(lastLine);
+        nextLineIsMessage = true;
+      }
+      else if (lastLine.length() > 0)
+      {
+        if (nextLineIsMessage)
         {
-           
           Serial.println(lastLine);
-          nextLineIsMessage = true;
-        } 
-        else if (lastLine.length() > 0) 
-        {
-          if(nextLineIsMessage) 
+
+          //Read message content and set status according to SMS content
+          if (lastLine.indexOf("LED ON") >= 0)
           {
-            Serial.println(lastLine);
-             
-            //Read message content and set status according to SMS content
-            if(lastLine.indexOf("LED ON") >= 0)
-            {
-              //ledStatus = 1;
-              digitalWrite(LED_BUILTIN, LOW);
-              sendSMS("04168262667", "LED IS ON");
-            } else if(lastLine.indexOf("LED OFF") >= 0) 
-            {
-              //ledStatus = 0;
-              digitalWrite(LED_BUILTIN, HIGH);
-              sendSMS("04168262667", "LED IS OFF");
-            }
-             
-            nextLineIsMessage = false;
+            //ledStatus = 1;
+            digitalWrite(LED_BUILTIN, LOW);
+            //sendSMS("04168262667", "LED IS ON");
+            clearBuffer();
           }
-           
+          else if (lastLine.indexOf("LED OFF") >= 0)
+          {
+            //ledStatus = 0;
+            digitalWrite(LED_BUILTIN, HIGH);
+            //sendSMS("04168262667", "LED IS OFF");
+            clearBuffer();
+          }
+          else
+          {
+            clearBuffer();
+          }
+
+          nextLineIsMessage = false;
         }
-         
-        //Clear char array for next line of read
-        for( int i = 0; i < sizeof(currentLine);  ++i )
-        {
-         currentLine[i] = (char)0;
-        }
-        currentLineIndex = 0;
-    } 
-    else 
+
+      }
+
+      //Clear char array for next line of read
+      for ( int i = 0; i < sizeof(currentLine);  ++i )
+      {
+        currentLine[i] = (char)0;
+      }
+      currentLineIndex = 0;
+    }
+    else
     {
       currentLine[currentLineIndex++] = lastCharRead;
     }
@@ -111,7 +127,8 @@ void power_on() {
 
 }
 /////////////////////////////////////////////////////////////////
-int8_t sendATcommand(char* ATcommand, char* expected_answer, unsigned int timeout) {
+int8_t sendATcommand(char* ATcommand, char* expected_answer, unsigned int timeout)
+{
 
   uint8_t x = 0,  answer = 0;
   char response[100];
@@ -134,8 +151,10 @@ int8_t sendATcommand(char* ATcommand, char* expected_answer, unsigned int timeou
   previous = millis();
 
   // this loop waits for the answer
-  do {
-    if (Serial.available() != 0) {
+  do
+  {
+    if (Serial.available() != 0)
+    {
       // if there are data in the UART input buffer, reads it and checks for the asnwer
       response[x] = Serial.read();
       x++;
@@ -151,7 +170,8 @@ int8_t sendATcommand(char* ATcommand, char* expected_answer, unsigned int timeou
   return answer;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int sendSMS(char *phone_number, char *sms_text) {
+int sendSMS(char *phone_number, char *sms_text)
+{
 
   char aux_string[30];
   //char phone_number[] = "04168262667"; // ********* is the number to call
@@ -183,103 +203,18 @@ int sendSMS(char *phone_number, char *sms_text) {
   }
   return answer;
 }
-//////////////////////////////////////////////////////////////////////////
-void readSMS() {
-  sendATcommand("AT+CMGF=1", "OK", 5000);
-  answer = sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
-  if (answer == 1)
-  {
-    answer = 0;
-    x = 0;
-    while (Serial.available() == 0);
-    // this loop reads the data of the SMS
-    do {
-      // if there are data in the UART input buffer, reads it and checks for the asnwer
-      if (Serial.available() > 0) {
-        SMS[x] = Serial.read();
-        x++;
-        // check if the desired answer (OK) is in the response of the module
-        if (strstr(SMS, "OK") != NULL)
-        {
-          answer = 1;
-        }
-        if (strstr(SMS, "LED") != NULL)
-        {
-          answer = 2;
-        }
-      }
-    } while (answer == 0);   // Waits for the asnwer with time out
-
-    SMS[x] = '\0';
-
-    Serial.println(SMS);
-
-    //memset(SMS, '\0', 200);    // Initialize the string
-
-    x = 0;
-    for (x = 0; x < 200; ++x) {
-      SMS[x] = '\0';
-    }
-
-    while (Serial.available()) { //Cleans the input buffer
-      Serial.read();
-    }
-
-  }
-  else
-  {
-    Serial.print("error ");
-    Serial.println(answer, DEC);
-  }
-
-}
-//////////////////////////////////////////////////////////////////////////////////////////////
-int waitForResp(const char *resp, unsigned int timeout)
+/////////////////////////////////////////////////////////////////////////////
+void clearBuffer()
 {
-  int len = strlen(resp);
-  int sum = 0;
-  unsigned long timerStart, timerEnd;
-  timerStart = millis();
-  char currentLine[500] = "";
-  int currentLineIndex = 0;
-  //Clear char array for next line of read
-  for ( int i = 0; i < sizeof(currentLine);  ++i )
+  byte w = 0;
+  for (int i = 0; i < 10; i++)
   {
-    currentLine[i] = (char)0;
-  }
-  String lastLine = "";
-  while (1) {
-    if (Serial.available()) {
-      char c = Serial.read();
-      currentLine[currentLineIndex] = c;
-      currentLineIndex = currentLineIndex + 1;
-      sum = (c == resp[sum]) ? sum + 1 : 0;
-      if (sum == len)
-      {
-        ////Serial.println(sum);
-        lastLine = String(currentLine);
-        Serial.println(lastLine);
-        lastLine = "";
-        //Clear char array for next line of read
-        for ( int i = 0; i < sizeof(currentLine);  ++i )
-        {
-          currentLine[i] = (char)0;
-        }
-        currentLineIndex = 0;
-        break;
-      }
-      //if (sum == len)break;
+    while (Serial.available() > 0)
+    {
+      char k = Serial.read();
+      w++;
+      delay(1);
     }
-    timerEnd = millis();
-    if (timerEnd - timerStart > 1000 * timeout) {
-      return -1;
-    }
+    delay(1);
   }
-
-  while (Serial.available()) {
-    Serial.read();
-  }
-
-  return 0;
 }
-
