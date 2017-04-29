@@ -44,6 +44,8 @@ int r = -1;
 //Boolean to be set to true if number is found on phonebook
 bool isInPhonebook = false;
 
+// Variable to hold contact from call
+char contact[13]; //
 
 void setup() {
 
@@ -232,7 +234,7 @@ void endOfLineReached()
   }
   else if ((lastLine.length() > 0) && (nextValidLineIsCall))        // Rejects any empty line
   {
-    ////LastLineIsCLIP();
+    LastLineIsCLIP();
   }
   else if (lastLine.startsWith("+CMT:"))                           // New incoming SMS
   {
@@ -325,4 +327,64 @@ void LastLineIsCMT()
   }
 }
 //////////////////////////////////////////////////////////////////////////
+void LastLineIsCLIP()
+{
+  if (nextValidLineIsCall)
+  {
+    Serial.println(lastLine);
 
+    // Parsing lastLine to determine registration on SIM card
+    firstComma = lastLine.indexOf(',');
+    Serial.println(firstComma);  //For debugging
+    secondComma = lastLine.indexOf(',', firstComma + 1);
+    Serial.println(secondComma); //For debugging
+    thirdComma = lastLine.indexOf(',', secondComma + 1);
+    Serial.println(thirdComma);  //For debugging
+    forthComma = lastLine.indexOf(',', thirdComma + 1);
+    Serial.println(forthComma); //For debugging
+    fifthComma = lastLine.indexOf(',', forthComma + 1);
+    Serial.println(fifthComma); //For debugging
+
+    //Extracts contact
+    j = 0;
+    for (int i = forthComma + 1; i < fifthComma; ++i) {
+      contact[j] = lastLine[i];
+      ++j;
+    }
+    contact[j] = '\0'; // Contact as a full string
+    Serial.println(contact); //For Debugging
+
+    len = strlen(contact); //lenght of contact string
+    Serial.println(len);  // For Debugging
+
+    // HERE GOES the extraction of mobile number code
+
+    ////ExtractPhoneNumber();
+    //Serial.println(number);
+
+    // If exists on contact
+    if (len > 2)
+    {
+      Serial.println("In contact"); //For debugging
+      isIncontact = true;
+      Serial.println(isIncontact);
+      clearBuffer();
+    }
+    else
+    {
+      Serial.println("Not in contact"); //For debugging
+      isIncontact = false;
+      clearBuffer();
+    }
+
+    // If registered turns off led on pin 13.
+    //If not, just do nothing. (In a later release the action of turning off the led will notify the caller via SMS)
+
+    if (isIncontact)
+    {
+      digitalWrite(LED_BUILTIN, HIGH);  // Turns OFF LED;
+    }
+    ////CleanContactArray();
+    nextValidLineIsCall = false;
+  }
+} 
