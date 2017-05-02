@@ -288,6 +288,10 @@ void LastLineIsCMT()
     {
       DelAdd(2);
     }
+	else if (lastLine.indexOf("GETA0") >= 0)
+    {
+      GetValueofAnalog0();
+    }
     else
     {
       clearBuffer();
@@ -405,5 +409,31 @@ void LastLineIsCLIP()
   }
   clearBuffer();
   nextValidLineIsCall = false;
+}
+///////////////////////////////////////////////////////////////////////////////////
+void GetValueofAnalog0()
+{
+	Serial.println("KKKKKKKKKKKKKKKKKKKKKKKKKKK");
+	Serial.println(lastLine);
+	firstComma    = lastLine.indexOf(',');
+	secondComma   = lastLine.indexOf(',', firstComma  + 1);
+	String InPassword = lastLine.substring((firstComma + 1), (secondComma));
+	Serial.println(InPassword);
+	//PasswordOk        =  false ;
+	if (InPassword == Password)
+  {
+	// read the input on analog pin 0:
+    int sensorValue = analogRead(A0);
+	// Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
+    float voltage = sensorValue * (5.0 / 1023.0);
+    // print out the value you read:
+    Serial.println(voltage);
+	clearBuffer();
+  }
+  else
+  {
+	Serial.println("Password is not correct!");
+	clearBuffer();
+  }
 }
 
