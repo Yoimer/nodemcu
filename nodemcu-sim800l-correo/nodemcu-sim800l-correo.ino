@@ -13,6 +13,8 @@ bool nextValidLineIsCall = false;
 String PhoneCallingIndex = "";
 String PhoneCalling      = "";
 String OldPhoneCalling   = "";
+String DateandHour       = "";
+String AnalogInput = "";
 String lastLine = "";
 String phonenum = "";
 int firstComma = -1;
@@ -24,6 +26,9 @@ int forthComma = -1;
 int fifthComma = -1;
 int firstQuote = -1;
 int secondQuote = -1;
+int firstColon = -1;
+int secondColon = -1;
+int thirdColon = -1;
 int swveces      = 0;
 int len = -1;
 int j = -1;
@@ -228,6 +233,11 @@ void endOfLineReached()
       fifthComma        = lastLine.indexOf(',', forthComma  + 1);
       PhoneCalling      = lastLine.substring((firstComma - 12), (firstComma - 1));
       PhoneCallingIndex = lastLine.substring((firstComma + 2), (secondComma - 1));
+	  firstColon        = lastLine.indexOf(':');
+	  secondColon       = lastLine.indexOf(':', firstColon + 1);
+	  thirdColon =        lastLine.indexOf(':', secondColon + 1);
+	  DateandHour       = lastLine.substring((secondComma + 2), (thirdColon));
+	  Serial.println(DateandHour);
       Serial.println(PhoneCalling);        ////////////////////////////////////////////
       Serial.println(PhoneCallingIndex);
       j            = PhoneCallingIndex.toInt();
@@ -411,7 +421,7 @@ void LastLineIsCLIP()
   nextValidLineIsCall = false;
 }
 ///////////////////////////////////////////////////////////////////////////////////
-void GetValueofAnalog0()
+void GetValueofAnalog0() // SMS should be GETA0,9999, where 9999 is the first 4 numbers taken from position 1 on SIM
 {
 	Serial.println("KKKKKKKKKKKKKKKKKKKKKKKKKKK");
 	Serial.println(lastLine);
@@ -428,6 +438,31 @@ void GetValueofAnalog0()
     float voltage = sensorValue * (5.0 / 1023.0);
     // print out the value you read:
     Serial.println(voltage);
+	//Converts voltage to an String, to be sent later to server
+	AnalogInput = voltage; 
+	
+	if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+    HTTPClient http; //"http://estredoyaqueclub.com.ve/arduinoenviacorreo.php?telefono=" + PhoneCalling + "-" + PhoneCallingIndex;
+    String xp = "http://estredoyaqueclub.com.ve/arduinoenviacorreo.php?telefono=" + AnalogInput + "-" + DateandHour;
+    http.begin(xp);
+    int httpCode = http.GET();
+    if (httpCode > 0)
+    {
+      if (httpCode == HTTP_CODE_OK)
+      {
+        String BuildStringx = http.getString();
+        Serial.println("[+++++++++++++++++++");
+        Serial.println(BuildStringx);
+        Serial.println("[+++++++++++++++++++");
+      }
+    }
+    else
+    {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+    http.end();
+  }
 	clearBuffer();
   }
   else
