@@ -1,3 +1,7 @@
+
+/*Connects to estredoyaqueclub.com.ve/arduinoenviacorreo.php?telefono=*/
+
+
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
 ESP8266WiFiMulti WiFiMulti;
@@ -44,7 +48,7 @@ PINOUT Connection:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-External 12VDC/2A Power Supply                                    MP1584 (Turn knot until a volmeter shows 5VDC)
+External 12VDC/2A Power Supply                                    MP1584 (Turn knot until a volmeter shows 4.2VDC)
 
 Positive--------------------------------------------------------->Positive
 
