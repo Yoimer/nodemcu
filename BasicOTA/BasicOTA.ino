@@ -24,7 +24,7 @@ void setup() {
   ArduinoOTA.setHostname("NODE");
 
   // No authentication by default
-  ArduinoOTA.setPassword((const char *)"remioy2006202");
+  ArduinoOTA.setPassword((const char *)"9080706050");
 
   ArduinoOTA.onStart([]() {
     Serial.println("Start");
@@ -47,8 +47,21 @@ void setup() {
   Serial.println("Ready");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+
+  /////////BLINK////////////////////
+  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output 
+  /////////BLINK////////////////////
 }
 
 void loop() {
   ArduinoOTA.handle();
+  
+  /////////BLINK////////////////////
+  digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
+                                    // but actually the LED is on; this is because 
+                                    // it is acive low on the ESP-01)
+  delay(3000);                      // Wait for a second
+  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
+  delay(3000);                      // Wait for two seconds (to demonstrate the active low LED)
+  /////////BLINK////////////////////
 }
