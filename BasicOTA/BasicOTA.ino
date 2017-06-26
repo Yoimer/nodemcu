@@ -3,6 +3,23 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
+#include <WiFiClient.h> 
+#include <ESP8266WebServer.h>
+
+/* Set these to your desired credentials for Nodemcu as AP. */
+const char *ssidAP = "Pakistan";
+const char *passwordAP = "nano";
+
+ESP8266WebServer server(80);
+
+/* Just a little test message.  Go to http://192.168.4.1 in a web browser
+ * connected to this access point to see it.
+ */
+void handleRoot() {
+  //server.send(200, "text/html", "<h1>You are connected</h1>");
+  server.send(200, "text/html", "<h1>Welcome to Pakistan :)</h1>");
+}
+
 const char* ssid = "Casa";
 const char* password = "remioy2006202";
 
@@ -48,20 +65,20 @@ void setup() {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  /////////BLINK////////////////////
-  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output 
-  /////////BLINK////////////////////
+  delay(1000);
+  Serial.print("Configuring access point...");
+  /* You can remove the password parameter if you want the AP to be open. */
+  WiFi.softAP(ssidAP, passwordAP);
+  IPAddress myIP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(myIP);
+  server.on("/", handleRoot);
+  server.begin();
+  Serial.println("HTTP server started");
 }
 
 void loop() {
   ArduinoOTA.handle();
-  
-  /////////BLINK////////////////////
-  digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
-                                    // but actually the LED is on; this is because 
-                                    // it is acive low on the ESP-01)
-  delay(3000);                      // Wait for a second
-  digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
-  delay(3000);                      // Wait for two seconds (to demonstrate the active low LED)
-  /////////BLINK////////////////////
+  server.handleClient();
+
 }
