@@ -1,14 +1,12 @@
+
+#include <WiFiClient.h> 
+#include <ESP8266WebServer.h>
+
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#include <WiFiClient.h> 
-#include <ESP8266WebServer.h>
-
-/* Set these to your desired credentials for Nodemcu as AP. */
-const char *ssidAP = "Pakistan";
-const char *passwordAP = "nano";
 
 ESP8266WebServer server(80);
 
@@ -17,7 +15,7 @@ ESP8266WebServer server(80);
  */
 void handleRoot() {
   //server.send(200, "text/html", "<h1>You are connected</h1>");
-  server.send(200, "text/html", "<h1>Welcome to Pakistan :)</h1>");
+  server.send(200, "text/html", "<h1>Welcome to The Orchid :) ******************</h1>");
 }
 
 const char* ssid = "Casa";
@@ -67,8 +65,12 @@ void setup() {
 
   delay(1000);
   Serial.print("Configuring access point...");
+  /* Set these to your desired credentials for Nodemcu as AP. */
   /* You can remove the password parameter if you want the AP to be open. */
-  WiFi.softAP(ssidAP, passwordAP);
+  /*WiFi.softAP("ssid", "password")*/
+  //const char* ssid = "Bash-Shell" // Does not work as a variable , has to be hardcoded
+  //const char* password = 0123456789  // Does not work as a variable , has to be hardcoded
+  WiFi.softAP("Bash-Shell", "0123456789");
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(myIP);
