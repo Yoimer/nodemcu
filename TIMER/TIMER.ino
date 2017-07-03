@@ -9,7 +9,7 @@
  Note that this sketch uses LED_BUILTIN to find the pin with the internal LED
 */
 
-unsigned long timeOn = 1L * 1000L * 60L; // delay between updates, 3 minutes
+unsigned long timeOn = 3L * 1000L * 60L; // delay between updates, 3 minutes
 unsigned long timeOff = 1L * 1000L * 60L; // delay between updates, 1 minutes
 
 void setup() {
@@ -27,7 +27,7 @@ void loop() {
   //delay(10000);                      // Wait for a second
   delay(timeOn);
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
-  digitalWrite(D2, LOW);             //Digital 2 HIGH  
+  digitalWrite(D2, LOW);             //Digital 2 LOW  
   //delay(20000);                     // Wait for two seconds (to demonstrate the active low LED)
   delay(timeOff);
 }
