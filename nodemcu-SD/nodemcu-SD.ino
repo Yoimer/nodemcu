@@ -1,7 +1,9 @@
 /*
-  SD card basic file example
-
- This example shows how to create and destroy an SD card file
+  Listfiles
+ 
+ This example shows how print out the files in a 
+ directory on a SD card 
+ 	
  The circuit:
  * SD card attached to SPI bus as follows:
  ** MOSI - pin 11
@@ -13,7 +15,9 @@
  by David A. Mellis
  modified 9 Apr 2012
  by Tom Igoe
-
+ modified 2 Feb 2014
+ by Scott Fitzgerald
+ 
  NODEMCU                 MicroSD Card Adapter
  GND---------------------GND
  Vin---------------------VCC
@@ -22,14 +26,13 @@
  D6----------------------MOSO
  D5----------------------SCK
  
-
  This example code is in the public domain.
 
  */
 #include <SPI.h>
 #include <SD.h>
 
-File myFile;
+File root;
 
 void setup()
 {
@@ -39,7 +42,6 @@ void setup()
     ; // wait for serial port to connect. Needed for Leonardo only
   }
 
-
   Serial.print("Initializing SD card...");
 
   if (!SD.begin(4)) {
@@ -48,36 +50,11 @@ void setup()
   }
   Serial.println("initialization done.");
 
-  if (SD.exists("example.txt")) {
-    Serial.println("example.txt exists.");
-  }
-  else {
-    Serial.println("example.txt doesn't exist.");
-  }
+  root = SD.open("/");
 
-  // open a new file and immediately close it:
-  Serial.println("Creating example.txt...");
-  myFile = SD.open("example.txt", FILE_WRITE);
-  myFile.close();
+  printDirectory(root, 0);
 
-  // Check to see if the file exists:
-  if (SD.exists("example.txt")) {
-    Serial.println("example.txt exists.");
-  }
-  else {
-    Serial.println("example.txt doesn't exist.");
-  }
-
-  // delete the file:
-  Serial.println("Removing example.txt...");
-  SD.remove("example.txt");
-
-  if (SD.exists("example.txt")) {
-    Serial.println("example.txt exists.");
-  }
-  else {
-    Serial.println("example.txt doesn't exist.");
-  }
+  Serial.println("done!");
 }
 
 void loop()
@@ -85,4 +62,27 @@ void loop()
   // nothing happens after setup finishes.
 }
 
+void printDirectory(File dir, int numTabs) {
+   while(true) {
+     
+     File entry =  dir.openNextFile();
+     if (! entry) {
+       // no more files
+       break;
+     }
+     for (uint8_t i=0; i<numTabs; i++) {
+       Serial.print('\t');
+     }
+     Serial.print(entry.name());
+     if (entry.isDirectory()) {
+       Serial.println("/");
+       printDirectory(entry, numTabs+1);
+     } else {
+       // files have sizes, directories do not
+       Serial.print("\t\t");
+       Serial.println(entry.size(), DEC);
+     }
+     entry.close();
+   }
+}
 
