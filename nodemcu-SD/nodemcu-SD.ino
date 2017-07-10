@@ -1,9 +1,7 @@
 /*
-  SD card file dump
+  SD card basic file example
 
- This example shows how to read a file from the SD card using the
- SD library and send it over the serial port.
-
+ This example shows how to create and destroy an SD card file
  The circuit:
  * SD card attached to SPI bus as follows:
  ** MOSI - pin 11
@@ -11,11 +9,11 @@
  ** CLK - pin 13
  ** CS - pin 4
 
- created  22 December 2010
- by Limor Fried
+ created   Nov 2010
+ by David A. Mellis
  modified 9 Apr 2012
  by Tom Igoe
- 
+
  NODEMCU                 MicroSD Card Adapter
  GND---------------------GND
  Vin---------------------VCC
@@ -23,16 +21,15 @@
  D7----------------------MOSI
  D6----------------------MOSO
  D5----------------------SCK
-
+ 
 
  This example code is in the public domain.
 
  */
-
 #include <SPI.h>
 #include <SD.h>
 
-const int chipSelect = 4;
+File myFile;
 
 void setup()
 {
@@ -45,32 +42,47 @@ void setup()
 
   Serial.print("Initializing SD card...");
 
-  // see if the card is present and can be initialized:
-  if (!SD.begin(chipSelect)) {
-    Serial.println("Card failed, or not present");
-    // don't do anything more:
+  if (!SD.begin(4)) {
+    Serial.println("initialization failed!");
     return;
   }
-  Serial.println("card initialized.");
+  Serial.println("initialization done.");
 
-  // open the file. note that only one file can be open at a time,
-  // so you have to close this one before opening another.
-  //File dataFile = SD.open("datalog.txt");
-  File dataFile = SD.open("TEST.txt");
-
-  // if the file is available, write to it:
-  if (dataFile) {
-    while (dataFile.available()) {
-      Serial.write(dataFile.read());
-    } 
-    dataFile.close();
+  if (SD.exists("example.txt")) {
+    Serial.println("example.txt exists.");
   }
-  // if the file isn't open, pop up an error:
   else {
-    Serial.println("error opening datalog.txt");
+    Serial.println("example.txt doesn't exist.");
+  }
+
+  // open a new file and immediately close it:
+  Serial.println("Creating example.txt...");
+  myFile = SD.open("example.txt", FILE_WRITE);
+  myFile.close();
+
+  // Check to see if the file exists:
+  if (SD.exists("example.txt")) {
+    Serial.println("example.txt exists.");
+  }
+  else {
+    Serial.println("example.txt doesn't exist.");
+  }
+
+  // delete the file:
+  Serial.println("Removing example.txt...");
+  SD.remove("example.txt");
+
+  if (SD.exists("example.txt")) {
+    Serial.println("example.txt exists.");
+  }
+  else {
+    Serial.println("example.txt doesn't exist.");
   }
 }
 
 void loop()
 {
+  // nothing happens after setup finishes.
 }
+
+
