@@ -62,7 +62,7 @@ void setup()
   if (dataFile) {
     while (dataFile.available()) {
       Serial.write(dataFile.read());
-    }
+    } 
     dataFile.close();
   }
   // if the file isn't open, pop up an error:
