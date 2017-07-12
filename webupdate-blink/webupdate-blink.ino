@@ -23,6 +23,7 @@ void setup(void){
   Serial.begin(115200);
   Serial.println();
   Serial.println("Booting Sketch...");
+  WiFi.softAP("hostpot", "11223344");
   WiFi.mode(WIFI_AP_STA);
   WiFi.begin(ssid, password);
   if(WiFi.waitForConnectResult() == WL_CONNECTED){
@@ -121,3 +122,4 @@ void printDirectory(File dir, int numTabs) {
      entry.close();
    }
 }
+
