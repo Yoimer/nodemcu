@@ -121,8 +121,8 @@ void setup(void){
 }
  
 void loop(void){
-  server.handleClient();
-  delay(1);
+  /*server.handleClient();
+  delay(1);*/
 
     char msgx[1024];  
   char telx[1024];
@@ -259,6 +259,7 @@ for (int i = 0; i < 10; i++)
 ////////////////////////////////////////////////////////////////////
 int GetInfoFromWeb (int router)
 {
+server.handleClient();  
 delay(10000); 
 String xp;
 if((WiFiMulti.run() == WL_CONNECTED) ) 
