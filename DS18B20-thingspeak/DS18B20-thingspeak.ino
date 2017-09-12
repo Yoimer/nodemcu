@@ -1,3 +1,7 @@
+/*
+  Sends SMS Using NODEMCU and SIM800L C oroboard
+*/
+
 // ESP8266 DS18B20 ArduinoIDE Thingspeak IoT Example code
 // http://vaasa.hacklab.fi
 //
@@ -8,7 +12,6 @@
 //NodeMCU 3v3 to the Vin of DS18B20
 //NodeMCU D1 to the data of DS18B20
 //NodeMCU GND to the GND of DS18B20
-
 
 #include <OneWire.h>
 #include <ESP8266WiFi.h>
@@ -30,8 +33,9 @@ DallasTemperature DS18B20(&oneWire);
 const char* ssid = "FARC-ELN-ISIS";
 const char* pass = "remioyroman";
 char temperatureString[6];
-char message[100];
 
+
+//int onModulePin = 13;
 int8_t answer;
 int x;
 
@@ -43,15 +47,44 @@ int currentLineIndex = 0;
 //line of serial output is the actual SMS message content
 bool nextLineIsMessage = false;
 
+////Boolean to be set to true if call notificaion was found and next line is NOT empty
+bool nextValidLineIsCall = false;
+
 //Boolean to be set to true if number is found on contact
 bool isIncontact = false;
 
-void setup(void){
+// String which holds the last line read from Serial activitiy
+String lastLine = "";
+
+// To be saved phonemumber who sent SMS
+String phonenum = "";
+
+// Integer indexes
+int firstComma = -1;
+int secondComma = -1;
+int thirdComma = -1;
+int forthComma = -1;
+int fifthComma = -1;
+int firstQuote = -1;
+int secondQuote = -1;
+int len = -1;
+int j = -1;
+int i = -1;
+int f = -1;
+int r = -1;
+
+//Boolean to be set to true if number is found on phonebook
+bool isInPhonebook = false;
+
+
+void setup() {
+
+  //pinMode(onModulePin, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
   // initialize serial communications at 115200 bps:
   Serial.begin(115200);
-  Serial.println("");
-  // connects to router
+   Serial.println("");
+  
   WiFi.begin(ssid, pass);
   // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
@@ -66,10 +99,11 @@ void setup(void){
   Serial.println(WiFi.localIP());
 
   DS18B20.begin();
-  
-  Serial.println("Starting SIM800L Module..");
+
+  Serial.println("Starting communication with SIM800L..");
   power_on();
-  
+  delay(3000);
+
   Serial.println("Connecting to the network...");
 
   //checks network registration
@@ -81,6 +115,10 @@ void setup(void){
 
   //new message indication to Terminal Equipment TE.
   sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000);
+
+  //sets call notification
+  sendATcommand("AT+CLIP=1\r\n", "OK", 5000);
+
 }
 
 float getTemperature() {
@@ -94,11 +132,34 @@ float getTemperature() {
 }
 
 
+
 void loop()
- {
+{
 
+  unsigned long previous = millis();
+  //previous = millis();
+  do
+  {
+	  //If there is serial output from SIM800
+	  if (Serial.available() > 0)
+	  {
+		char lastCharRead = Serial.read();
+
+		//Read each character from serial output until \r or \n is reached (which denotes end of line)
+		if (lastCharRead == '\r' || lastCharRead == '\n')
+		{
+		  endOfLineReached();
+		}
+
+		else
+		{
+		  currentLine[currentLineIndex++] = lastCharRead;
+		}
+      }	
+  }while((millis() - previous) < 5000);  //waits for serial activity for 5 seconds
+
+  
   float temperature = getTemperature();
-
   dtostrf(temperature, 2, 2, temperatureString);
   // send temperature to the serial console
   Serial.println(temperatureString);
@@ -112,84 +173,9 @@ void loop()
 
   client.print(String("GET ") + path + temperatureString + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" + 
-               "Connection: keep-alive\r\n\r\n");
-			   
-
-
-  
-  if (temperature >= 30.80) //Threslhold value
-  { 
-    snprintf( message, sizeof(message), "Warning, temperature value has increased to: %s %s", temperatureString, "Celsius Degrees" );
-	sendSMS("04129501619", message);
-	Serial.println(message);
-  }
-			   
-  delay(500);
-  
-  //If there is serial output from SIM800
-  /*if (Serial.available() > 0)
-  {
-    char lastCharRead = Serial.read();
-    //Read each character from serial output until \r or \n is reached (which denotes end of line)
-    if (lastCharRead == '\r' || lastCharRead == '\n')
-    {
-      String lastLine = String(currentLine);
-
-      //If last line read +CMT, New SMS Message Indications was received.
-      //Hence, next line is the message content.
-      if (lastLine.startsWith("+CMT:"))
-      {
-
-        Serial.println(lastLine);
-        nextLineIsMessage = true;
-      }
-      else if (lastLine.length() > 0)
-      {
-        if (nextLineIsMessage)
-        {
-          Serial.println(lastLine);
-
-          //Read message content and set status according to SMS content
-          if (lastLine.indexOf("LED ON") >= 0)
-          {
-            //ledStatus = 1;
-            digitalWrite(LED_BUILTIN, LOW);
-            sendSMS("04129501619", "LED IS ON");
-            clearBuffer();
-          }
-          else if (lastLine.indexOf("LED OFF") >= 0)
-          {
-            //ledStatus = 0;
-            digitalWrite(LED_BUILTIN, HIGH);
-            sendSMS("04129501619", "LED IS OFF");
-            clearBuffer();
-          }
-          else
-          {
-            clearBuffer();
-          }
-
-          nextLineIsMessage = false;
-        }
-
-      }
-
-      //Clear char array for next line of read
-      for ( int i = 0; i < sizeof(currentLine);  ++i )
-      {
-        currentLine[i] = (char)0;
-      }
-      currentLineIndex = 0;
-    }
-    else
-    {
-      currentLine[currentLineIndex++] = lastCharRead;
-    }
-  }
-  delay(1000);*/
+			   "Connection: keep-alive\r\n\r\n");
   
 }
-
 
 ///////////////////////////////////////////////////////
 void power_on() {
@@ -250,13 +236,12 @@ int8_t sendATcommand(char* ATcommand, char* expected_answer, unsigned int timeou
 
   return answer;
 }
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int sendSMS(char *phone_number, char *sms_text)
 {
 
   char aux_string[30];
-  //char phone_number[] = "04129501619"; // ********* is the number to call
+  //char phone_number[] = "04168262667"; // ********* is the number to call
   //char sms_text[] = "Test-Arduino-Hello World";
   Serial.print("Setting SMS mode...");
   sendATcommand("AT+CMGF=1", "OK", 5000);    // sets the SMS mode to text
@@ -299,4 +284,127 @@ void clearBuffer()
     }
     delay(1);
   }
- }
+}
+/////////////////////////////////////////////////////////////////////////////////
+void endOfLineReached()
+{
+  lastLine = String(currentLine);
+
+  //-----------------------Call---------------------------//
+  // If lastLine reads RING, New Call Indication was received.
+  // Hence, the THIRD LINE is the caller information.
+
+  // The whole string will be something like this if caller IS registered on SIM Card:
+  //RING (First Line)
+  //     (Second Line is empty)
+  //+CLIP: "04168262667",129,"",0,"Yoimer",0 (Third Line)
+
+  // The whole string will be something like this if caller is NOT registered on SIM Card
+  //RING (First Line)
+  //     (Second Line is empty)
+  //+CLIP: "04168262667",129,"",0,"",0 (Third Line)
+
+  //----------------------SMS-------------------------------------//
+  //If lastLine reads +CMT, New SMS Message Indications was received.
+  //Hence, next line is the message content.
+
+  if (lastLine.startsWith("RING"))                                   // New incoming call
+  {
+    Serial.println(lastLine);
+    nextValidLineIsCall = true;
+  }
+  else if ((lastLine.length() > 0) && (nextValidLineIsCall))        // Rejects any empty line
+  {
+    ////LastLineIsCLIP();
+  }
+  else if (lastLine.startsWith("+CMT:"))                           // New incoming SMS
+  {
+    Serial.println(lastLine);
+    phonenum = lastLine.substring((lastLine.indexOf(34) + 1),   //Parser to extract phonenumber
+                                  lastLine.indexOf(34, lastLine.indexOf(34) + 1));
+    ////Serial.println(phonenum);
+    nextLineIsMessage = true;
+
+    // Parsing lastLine to determine registration on SIM card
+    firstComma = lastLine.indexOf(',');
+    Serial.println(firstComma);  //For debugging
+    secondComma = lastLine.indexOf(',', firstComma + 1);
+    Serial.println(secondComma); //For debugging
+
+    // +CMT: "+584168262667","","17/03/14,16:18:53-16" TelefÃ³nica Movistar Venezuela with no contacts saved
+    //firstComma = 21
+    //secondComma = 24
+
+    Serial.println("Diff");
+    Serial.println(secondComma - firstComma);
+
+
+  }
+  else if ((lastLine.length() > 0) && (nextLineIsMessage))       // Rejects any empty line
+  {
+
+    LastLineIsCMT();
+
+  }
+
+  CleanCurrentLine();
+}
+/////////////////////////////////////////////////////////////////////
+void CleanCurrentLine()
+{
+  //Clear char array for next line of read
+  for ( int i = 0; i < sizeof(currentLine);  ++i )
+  {
+    currentLine[i] = (char)0;
+  }
+  currentLineIndex = 0;
+}
+//////////////////////////////////////////////////////////////////////
+void LastLineIsCMT()
+{
+  if (nextLineIsMessage)
+  {
+    Serial.println(lastLine);
+
+
+    // If exists on Phonebook
+    //if (secondComma > 22)   // Only works with Movilnet and Digitel Venezuela
+    //if (secondComma > 24)    // Only works with for TelefÃ³nica Movistar Venezuela
+    if ((secondComma - firstComma) > 3)
+    {
+      Serial.println("In Phonebook"); //For debugging
+      isInPhonebook = true;
+      Serial.println(isInPhonebook);
+      clearBuffer();
+    }
+    else
+    {
+      Serial.println("Not in Phonebook"); //For debugging
+      isInPhonebook = false;
+      clearBuffer();
+    }
+
+    //if on phonebook ---------------------------
+    if (isInPhonebook)
+    {
+      // If SMS contains LED ON or LED OFF or #WhiteList
+      if (lastLine.indexOf("LED ON") >= 0)
+      {
+         digitalWrite(LED_BUILTIN, LOW);  // Turns ON LED
+         clearBuffer();
+      }
+      else if (lastLine.indexOf("LED OFF") >= 0)
+      {
+         digitalWrite(LED_BUILTIN, HIGH);  // Turns OFF LED
+         clearBuffer();
+      }
+      else
+      {
+        clearBuffer();
+      }
+    }
+    CleanCurrentLine();
+    nextLineIsMessage = false;
+  }
+}
+//////////////////////////////////////////////////////////////////////////
