@@ -33,6 +33,7 @@ DallasTemperature DS18B20(&oneWire);
 const char* ssid = "FARC-ELN-ISIS";
 const char* pass = "remioyroman";
 char temperatureString[6];
+char message[100];
 
 
 //int onModulePin = 13;
@@ -175,6 +176,11 @@ void loop()
                "Host: " + host + "\r\n" + 
 			   "Connection: keep-alive\r\n\r\n");
   
+   if (temperature >= 30.80) { //Threslhold value
+    snprintf( message, sizeof(message), "Warning, temperature value has increased to: %s %s", temperatureString, "Celsius Degrees" );
+	sendSMS("04129501619", message);
+	Serial.println(message);
+  }
 }
 
 ///////////////////////////////////////////////////////
