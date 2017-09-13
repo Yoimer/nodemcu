@@ -82,6 +82,8 @@ void setup() {
 
   //pinMode(onModulePin, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
+  //sets D2 as output. D2 is GPIO-4
+  pinMode(4, OUTPUT);
   // initialize serial communications at 115200 bps:
   Serial.begin(115200);
    Serial.println("");
@@ -120,6 +122,8 @@ void setup() {
   //sets call notification
   sendATcommand("AT+CLIP=1\r\n", "OK", 5000);
 
+  digitalWrite(4, HIGH);  // Activates Relay
+  
 }
 
 float getTemperature() {
@@ -176,11 +180,17 @@ void loop()
                "Host: " + host + "\r\n" + 
 			   "Connection: keep-alive\r\n\r\n");
   
-   if (temperature >= 30.80) { //Threslhold value
+   if ((temperature >= 30.80) && (temperature < 32.30)) { //Threslhold value
     snprintf( message, sizeof(message), "Warning, temperature value has increased to: %s %s", temperatureString, "Celsius Degrees" );
 	sendSMS("04129501619", message);
 	Serial.println(message);
   }
+  else if (temperature >= 32.30) { // Highest Value, turn off device
+	snprintf( message, sizeof(message), "Device has been shutdown, temperature is: %s %s", temperatureString, "Celsius Degrees" );
+	digitalWrite(4, LOW);  // Deactivates Relay
+	sendSMS("04129501619", message);
+	Serial.println(message);
+  } 
 }
 
 ///////////////////////////////////////////////////////
@@ -396,12 +406,14 @@ void LastLineIsCMT()
       // If SMS contains LED ON or LED OFF or #WhiteList
       if (lastLine.indexOf("LED ON") >= 0)
       {
-         digitalWrite(LED_BUILTIN, LOW);  // Turns ON LED
+         digitalWrite(LED_BUILTIN, LOW);  // Turns ON LED, inverse logic
+         digitalWrite(4, HIGH);  // Activates Relay
          clearBuffer();
       }
       else if (lastLine.indexOf("LED OFF") >= 0)
       {
-         digitalWrite(LED_BUILTIN, HIGH);  // Turns OFF LED
+         digitalWrite(LED_BUILTIN, HIGH);  // Turns OFF LED, inverse logic
+         digitalWrite(4, LOW);  // Deactivates Relay
          clearBuffer();
       }
       else
