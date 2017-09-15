@@ -36,6 +36,8 @@ char contact[13];
 void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT);
+  //sets D2 as output. D2 is GPIO-4
+  pinMode(4, OUTPUT);
   Serial.begin(115200);
   Serial.println("Starting...");
   power_on();
@@ -49,6 +51,7 @@ void setup() {
   Serial.println("Password:");
   Serial.println(Password);
   WiFiMulti.addAP("Casa", "remioy2006202");
+  digitalWrite(4, HIGH); // Activates Relay
 
 }
 
@@ -323,6 +326,21 @@ int  prendeapaga (int siono)
   {
     //PasswordOk = true ;
     digitalWrite(LED_BUILTIN, siono);
+	switch (siono) {
+    case 0:
+      //do something when var equals 1
+	  digitalWrite(4, HIGH); // Deactivates Relay, Inverse Logic 
+      break;
+    case 1:
+      //do something when var equals 2
+	   digitalWrite(4, LOW); // Activates Relay, , Inverse Logic 
+      break;
+    default:
+      // if nothing else matches, do the default
+      // default is optional
+    break;
+   }
+
   }
   clearBuffer();
 }
@@ -390,7 +408,8 @@ void LastLineIsCLIP()
   }
   if (j > 0 & swveces == 0)
   {
-    digitalWrite(LED_BUILTIN, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH); // Deactivates Relay, inverse Logic
+	digitalWrite(4, LOW);
   }
   if ((WiFiMulti.run() == WL_CONNECTED) & swveces == 0)
   {
