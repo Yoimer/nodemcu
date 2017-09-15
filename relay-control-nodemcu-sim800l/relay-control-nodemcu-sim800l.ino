@@ -328,11 +328,11 @@ int  prendeapaga (int siono)
     digitalWrite(LED_BUILTIN, siono);
 	switch (siono) {
     case 0:
-      //do something when var equals 1
+      //do something when var equals 0
 	  digitalWrite(4, HIGH); // Deactivates Relay, Inverse Logic 
       break;
     case 1:
-      //do something when var equals 2
+      //do something when var equals 1
 	   digitalWrite(4, LOW); // Activates Relay, , Inverse Logic 
       break;
     default:
