@@ -51,7 +51,7 @@ void setup() {
   Serial.println("Password:");
   Serial.println(Password);
   WiFiMulti.addAP("Casa", "remioy2006202");
-  digitalWrite(4, HIGH); // Activates Relay
+  //digitalWrite(4, HIGH); // Activates Relay
 
 }
 
@@ -329,11 +329,11 @@ int  prendeapaga (int siono)
 	switch (siono) {
     case 0:
       //do something when var equals 0
-	  digitalWrite(4, HIGH); // Deactivates Relay, Inverse Logic 
+	  digitalWrite(4, LOW); // Deactivates Relay,
       break;
     case 1:
       //do something when var equals 1
-	   digitalWrite(4, LOW); // Activates Relay, , Inverse Logic 
+	   digitalWrite(4, HIGH); // Activates Relay,
       break;
     default:
       // if nothing else matches, do the default
@@ -409,7 +409,7 @@ void LastLineIsCLIP()
   if (j > 0 & swveces == 0)
   {
     digitalWrite(LED_BUILTIN, HIGH); // Deactivates Relay, inverse Logic
-	digitalWrite(4, LOW);
+	  digitalWrite(4, HIGH); // Activates Relay,
   }
   if ((WiFiMulti.run() == WL_CONNECTED) & swveces == 0)
   {
