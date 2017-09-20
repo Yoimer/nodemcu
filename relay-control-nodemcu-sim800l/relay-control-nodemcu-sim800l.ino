@@ -32,6 +32,9 @@ int f = -1;
 int r = 0;
 bool isInPhonebook = false;
 char contact[13];
+char phone[21]; // a global buffer to hold phone number
+
+
 
 void setup() {
 
@@ -52,6 +55,7 @@ void setup() {
   Serial.println(Password);
   WiFiMulti.addAP("Casa", "remioy2006202");
   //digitalWrite(4, HIGH); // Activates Relay
+
 
 }
 
@@ -231,7 +235,7 @@ void endOfLineReached()
       fifthComma        = lastLine.indexOf(',', forthComma  + 1);
       PhoneCalling      = lastLine.substring((firstComma - 12), (firstComma - 1));
       PhoneCallingIndex = lastLine.substring((firstComma + 2), (secondComma - 1));
-      Serial.println(PhoneCalling);        ////////////////////////////////////////////
+      Serial.println(phonenum);        ////////////////////////////////////////////
       Serial.println(PhoneCallingIndex);
       j            = PhoneCallingIndex.toInt();
       isIncontact  = false;
@@ -301,6 +305,13 @@ void LastLineIsCMT()
     else if (lastLine.indexOf("DEL") >= 0)
     {
       DelAdd(2);
+    }
+	//only the position from 1 to 5 on SIM can check status    
+    // SMS has to be: STATUS,four numbers on position 1 on sim,
+    // Example: STATUS,0416, 
+	else if (lastLine.indexOf("STATUS") >= 0)
+    {
+      CheckStatus();
     }
     else
     {
@@ -437,3 +448,18 @@ void LastLineIsCLIP()
   nextValidLineIsCall = false;
 }
 
+//////////////////////////////////////////////////////////////////////////
+void CheckStatus()
+{
+	if (isAuthorized)
+	{
+		phonenum.toCharArray(phone, 21); // copy String object directly to global buffer
+		sendSMS(phone, "System is online!");
+	}
+	else
+	{
+		Serial.println("Check previous authorization");
+	}
+	
+	clearBuffer();
+}
