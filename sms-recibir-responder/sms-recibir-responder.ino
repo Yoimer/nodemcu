@@ -8,11 +8,19 @@
 	pueden tomar acciones de control.
 	Cualquier SMS distinto a los strings predefinidos
 	no serán tomados en cuenta por el sistema
+	Para control el SMS debe ser:
+	LED ON,0416, si el el número guardado en posición 1 del simcard
+	empieza por 0416
+	LED OFF,0416, si el el número guardado en posición 1 del simcard
+	empieza por 0416
+	Para registro y eliminación de usuarios:
+	Registro
+	ADD,posicion a guardar en sim,numero a guardar,
+	Ejemplo: ADD,6,04168262667,
+	DEL,posicion a borrar,
+	Ejemplo: DEL,85,
 */
 
-#include <ESP8266WiFiMulti.h>
-#include <ESP8266HTTPClient.h>
-ESP8266WiFiMulti WiFiMulti;
 int8_t answer;
 bool isIncontact         = false;
 bool isAuthorized        = false;
@@ -52,6 +60,8 @@ char phone[21]; // a global buffer to hold phone number
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
+  // D2 como salida. D2 es GPIO-4
+  pinMode(4, OUTPUT);
   Serial.begin(115200);
   Serial.println("Starting...");
   
@@ -79,9 +89,6 @@ void setup() {
   
   // Imprime la contraseña en la consola
   Serial.println(Password);
-  
-  
-  WiFiMulti.addAP("Casa", "remioy2006202");
 }
 
 
@@ -315,6 +322,18 @@ int  prendeapaga (int siono)
   {
     //PasswordOk = true ;
     digitalWrite(LED_BUILTIN, siono);
+	
+	switch (siono) {
+    case 0:
+	  digitalWrite(4, LOW); // Desactiva el relé,
+      break;
+    case 1:
+	  digitalWrite(4, HIGH); // Activa el relé,
+      break;
+    default:
+    break;
+}
+
   }
   clearBuffer();
 }
@@ -374,4 +393,42 @@ int DelAdd(int DelOrAdd)
     Serial.println("error ");
   }
   clearBuffer();
+}
+
+
+//**********************************************************
+
+// Función que envía SMS 
+
+int sendSMS(char *phone_number, char *sms_text)
+{
+  char aux_string[30];
+  //char phone_number[] = "04168262667"; // ********* is the number to call
+  //char sms_text[] = "Test-Arduino-Hello World";
+  Serial.print("Setting SMS mode...");
+  sendATcommand("AT+CMGF=1", "OK", 5000, 0);   // sets the SMS mode to text
+  Serial.println("Sending SMS");
+
+  sprintf(aux_string, "AT+CMGS=\"%s\"", phone_number);
+  answer = sendATcommand(aux_string, ">", 20000, 0);   // send the SMS number
+  if (answer == 1)
+  {
+    Serial.println(sms_text);
+    Serial.write(0x1A);
+    answer = sendATcommand("", "OK", 20000, 0);
+    if (answer == 1)
+    {
+      Serial.println("Sent ");
+    }
+    else
+    {
+      Serial.println("error ");
+    }
+  }
+  else
+  {
+    Serial.println("error ");
+    Serial.println(answer, DEC);
+  }
+  return answer;
 }
