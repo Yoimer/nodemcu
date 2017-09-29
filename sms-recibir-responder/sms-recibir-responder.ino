@@ -278,12 +278,13 @@ void LastLineIsCMT()
     // SMS para encender equipo
 	if (lastLine.indexOf("LED ON") >= 0)
     {
-      //
+      // logica inversa
 	  prendeapaga(0);
     }
 	// SMS para apagar equipo
     else if (lastLine.indexOf("LED OFF") >= 0)
     {
+	  // logica inversa
       prendeapaga(1);
     }
 	// SMS para registrar usuario
@@ -317,18 +318,33 @@ int  prendeapaga (int siono)
   secondComma   = lastLine.indexOf(',', firstComma  + 1);
   String InPassword = lastLine.substring((firstComma + 1), (secondComma));
   Serial.println(InPassword);
-  //PasswordOk        =  false ;
+
   if (InPassword == Password)
   {
-    //PasswordOk = true ;
+    // LED en NODEMCU con lógica inversa
     digitalWrite(LED_BUILTIN, siono);
 	
+	// Relé conectado en puerto digital D2-GPIO-4
 	switch (siono) {
     case 0:
-	  digitalWrite(4, LOW); // Desactiva el relé,
+	  // Desactiva el relé
+	   digitalWrite(4, LOW);
+	  
+	  // Copia número en array phone
+	  phonenum.toCharArray(phone, 21);
+	  
+	 // Envía SMS de confirmación 
+	  sendSMS(phone, "Rele activado!");
       break;
     case 1:
-	  digitalWrite(4, HIGH); // Activa el relé,
+	  // Activa el relé
+	   digitalWrite(4, HIGH);
+	  
+	  // Copia número en array phone
+	  phonenum.toCharArray(phone, 21);
+	  
+	  // Envía SMS de confirmación 
+	  sendSMS(phone, "Rele desactivado!");
       break;
     default:
     break;
