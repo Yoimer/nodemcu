@@ -22,37 +22,41 @@
 */
 
 int8_t answer;
-bool isIncontact         = false;
-bool isAuthorized        = false;
+bool isIncontact                          = false;
+bool isAuthorized                         = false;
 int x;
 unsigned long xprevious;
-char currentLine[500] = "";
-int currentLineIndex = 0;
-bool nextLineIsMessage = false;
-bool nextValidLineIsCall = false;
-String PhoneCallingIndex = "";
-String PhoneCalling      = "";
-String OldPhoneCalling   = "";
-String lastLine = "";
-String phonenum = "";
-int firstComma = -1;
-int prende = 0;
-int secondComma = -1;
-String Password          = "";
-int thirdComma = -1;
-int forthComma = -1;
-int fifthComma = -1;
-int firstQuote = -1;
-int secondQuote = -1;
-int swveces      = 0;
-int len = -1;
-int j = -1;
-int i = -1;
-int f = -1;
-int r = 0;
+char currentLine[500]                     = "";
+int currentLineIndex                      = 0;
+bool nextLineIsMessage                    = false;
+bool nextValidLineIsCall                  = false;
+String PhoneCallingIndex                  = "";
+String PhoneCalling                       = "";
+String OldPhoneCalling                    = "";
+String lastLine                           = "";
+String phonenum                           = "";
+int firstComma                            = -1;
+int prende                                =  0;
+int secondComma                           = -1;
+String Password                           = "";
+String indexAndName                       = "";
+String newContact                         = "";
+String trama                              = "";
+int thirdComma                            = -1;
+int forthComma                            = -1;
+int fifthComma                            = -1;
+int firstQuote                            = -1;
+int secondQuote                           = -1;
+int swveces                               = 0;
+int len                                   = -1;
+int j                                     = -1;
+int i                                     = -1;
+int f                                     = -1;
+int r                                     = 0;
 bool isInPhonebook = false;
 char contact[13];
 char phone[21]; // a global buffer to hold phone number
+char message[100];
 
 //**********************************************************
 
@@ -326,28 +330,28 @@ int  prendeapaga (int siono)
 	
 	// Relé conectado en puerto digital D2-GPIO-4
 	switch (siono) {
-    case 0:
-	  // Desactiva el relé
-	   digitalWrite(4, LOW);
+		case 0:
+			// Desactiva el relé
+			digitalWrite(4, LOW);
 	  
-	  // Copia número en array phone
-	  phonenum.toCharArray(phone, 21);
+			// Copia número en array phone
+			phonenum.toCharArray(phone, 21);
 	  
-	 // Envía SMS de confirmación 
-	  sendSMS(phone, "Rele activado!");
-      break;
-    case 1:
-	  // Activa el relé
-	   digitalWrite(4, HIGH);
+			// Envía SMS de confirmación 
+			sendSMS(phone, "Rele activado!");
+			break;
+		case 1:
+			// Activa el relé
+			digitalWrite(4, HIGH);
 	  
-	  // Copia número en array phone
-	  phonenum.toCharArray(phone, 21);
+			// Copia número en array phone
+			phonenum.toCharArray(phone, 21);
 	  
-	  // Envía SMS de confirmación 
-	  sendSMS(phone, "Rele desactivado!");
-      break;
-    default:
-    break;
+			// Envía SMS de confirmación 
+			sendSMS(phone, "Rele desactivado!");
+			break;
+		default:
+		break;
 }
 
   }
@@ -379,12 +383,14 @@ void clearBuffer()
 
 int DelAdd(int DelOrAdd)
 {
+  indexAndName = "";
   char aux_string[100];
   firstComma          = lastLine.indexOf(',');
   secondComma         = lastLine.indexOf(',', firstComma  + 1);
   thirdComma          = lastLine.indexOf(',', secondComma + 1);
-  String indexAndName = lastLine.substring((firstComma + 1), (secondComma));
-  String newContact   = lastLine.substring((secondComma + 1), thirdComma);
+  indexAndName = lastLine.substring((firstComma + 1), (secondComma));
+  newContact = "";
+  newContact   = lastLine.substring((secondComma + 1), thirdComma);
   if (!isAuthorized)
   {
     Serial.println(j); //////////////////////////////////////////////////////////////
@@ -403,10 +409,14 @@ int DelAdd(int DelOrAdd)
   if (answer == 1)
   {
     Serial.println("Sent ");
+	// llamar a confirmSMS() para decir que se registró
+	// o se eliminó con éxito
+	confirmSMS(DelOrAdd);
   }
   else
   {
     Serial.println("error ");
+	// llamar a confirmSMS() para decir que hubo un error
   }
   clearBuffer();
 }
@@ -448,3 +458,58 @@ int sendSMS(char *phone_number, char *sms_text)
   }
   return answer;
 }
+
+//**********************************************************
+
+// Función que confirma registro,eliminación
+// o error vía SMS 
+
+void confirmSMS(int DelOrAdd )
+{
+	
+	
+	switch (DelOrAdd) {
+		// Confirma registro exitoso
+		case 1:
+
+			// Copia número en array phone
+			phonenum.toCharArray(phone, 21);
+            
+			// Arma trama de confirmación
+			trama = "";
+			trama = "El numero: " + newContact + " ha sido registrado con exito en la posicion: " + indexAndName;
+			
+			// Convierte trama en SMS
+			trama.toCharArray(message, 100);
+			
+			Serial.println(message);
+			
+			// Envía SMS de confirmación 
+			sendSMS(phone, message);
+			break;
+		// Confirma eliminación exitosa
+		case 2:
+			
+			break;
+		// Reporta error
+		case 3:
+			switch (DelOrAdd) {
+				case 1:
+					
+					break;
+				case 2:
+					
+					break;
+				default:
+					
+					
+				break;
+			}
+			break;
+		default:
+		break;
+	}
+}
+
+
+
