@@ -493,7 +493,7 @@ void confirmSMS(int DelOrAdd )
 			// Copia número recien registrado en array phone
 			strcpy(phone, newContact.c_str());
 			
-			// Arma trama de confirmación
+			// Arma trama de bienvenida
 			trama = "";
 			trama = "Bienvenid@. Su numero fue registrado exitosamente.";
 			
