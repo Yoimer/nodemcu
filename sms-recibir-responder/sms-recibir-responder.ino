@@ -473,7 +473,6 @@ void confirmSMS(int DelOrAdd )
 		case 1:
 
 			// Copia número en array phone
-			//phonenum.toCharArray(phone, 21);
 			
 			strcpy(phone, phonenum.c_str());
             
@@ -481,11 +480,8 @@ void confirmSMS(int DelOrAdd )
 			trama = "";
 			trama = "El numero: " + newContact + " ha sido registrado con exito en la posicion: " + indexAndName;
 			
-			// Convierte trama en SMS
-			//trama.toCharArray(message, 100);
+			// Convierte trama en SM
 			strcpy(message, trama.c_str());
-			
-			////Serial.println(message);
 			
 			// Envía SMS de confirmación 
 			sendSMS(phone, message);
@@ -506,7 +502,20 @@ void confirmSMS(int DelOrAdd )
 			break;
 		// Confirma eliminación exitosa
 		case 2:
+		
+			// Copia número en array phone
+			strcpy(phone, phonenum.c_str());
+            
+			// Arma trama de confirmación
+			trama = "";
+			trama = "El numero registrado en la posicion: " + indexAndName + " ha sido eliminado exitosamente ";
 			
+			// Convierte trama en SMS
+			strcpy(message, trama.c_str());
+			
+			// Envía SMS de confirmación 
+			sendSMS(phone, message);
+
 			break;
 		// Reporta error
 		case 3:
