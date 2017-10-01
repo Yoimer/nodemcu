@@ -42,6 +42,7 @@ String Password                           = "";
 String indexAndName                       = "";
 String newContact                         = "";
 String trama                              = "";
+int SMSerror                                 = -1;
 int thirdComma                            = -1;
 int forthComma                            = -1;
 int fifthComma                            = -1;
@@ -416,7 +417,18 @@ int DelAdd(int DelOrAdd)
   else
   {
     Serial.println("error ");
+	if (DelOrAdd == 1)
+	{
+		SMSerror = 1;
+	}
+    else if (DelOrAdd == 2)
+	{
+		SMSerror = 2;
+	}
+	
+	Serial.println("Va a rutina de error");
 	// llamar a confirmSMS() para decir que hubo un error
+	confirmSMS(3);
   }
   clearBuffer();
 }
@@ -519,12 +531,38 @@ void confirmSMS(int DelOrAdd )
 			break;
 		// Reporta error
 		case 3:
-			switch (DelOrAdd) {
+			Serial.println("On case 3 ");
+			Serial.println("Value of DelOrAdd: ");
+			Serial.println(DelOrAdd);
+			
+			switch (SMSerror) {
 				case 1:
-					
+					// Copia número en array phone
+					strcpy(phone, phonenum.c_str());
+            
+					// Arma trama de confirmación
+					trama = "";
+					trama = "No se pudo registrar el numero. Revise el formato del mensaje por favor";
+			
+					// Convierte trama en SMS
+					strcpy(message, trama.c_str());
+			
+					// Envía SMS de confirmación 
+					sendSMS(phone, message);
 					break;
 				case 2:
-					
+					// Copia número en array phone
+					strcpy(phone, phonenum.c_str());
+            
+					// Arma trama de confirmación
+					trama = "";
+					trama = "No se pudo eliminar el numero. Revise el formato del mensaje por favor";
+			
+					// Convierte trama en SMS
+					strcpy(message, trama.c_str());
+			
+					// Envía SMS de confirmación 
+					sendSMS(phone, message);
 					break;
 				default:
 					
