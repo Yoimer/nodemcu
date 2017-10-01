@@ -417,17 +417,19 @@ int DelAdd(int DelOrAdd)
   else
   {
     Serial.println("error ");
+	
+	// Error de registro
 	if (DelOrAdd == 1)
 	{
 		SMSerror = 1;
 	}
+	// Error de eliminación
     else if (DelOrAdd == 2)
 	{
 		SMSerror = 2;
 	}
-	
 	Serial.println("Va a rutina de error");
-	// llamar a confirmSMS() para decir que hubo un error
+	// llamar a confirmSMS() para decir que tipo de error hubo
 	confirmSMS(3);
   }
   clearBuffer();
@@ -478,95 +480,42 @@ int sendSMS(char *phone_number, char *sms_text)
 
 void confirmSMS(int DelOrAdd )
 {
-	
-	
 	switch (DelOrAdd) {
 		// Confirma registro exitoso
 		case 1:
-
-			// Copia número en array phone
-			
-			strcpy(phone, phonenum.c_str());
-            
-			// Arma trama de confirmación
 			trama = "";
 			trama = "El numero: " + newContact + " ha sido registrado con exito en la posicion: " + indexAndName;
-			
-			// Convierte trama en SM
-			strcpy(message, trama.c_str());
-			
-			// Envía SMS de confirmación 
-			sendSMS(phone, message);
-			
-			// Copia número recien registrado en array phone
-			strcpy(phone, newContact.c_str());
-			
-			// Arma trama de bienvenida
+			tramaSMS(phonenum, trama); // Envía SMS de confirmación 
+
 			trama = "";
 			trama = "Bienvenid@. Su numero fue registrado exitosamente.";
-			
-			// Convierte trama en SMS
-			strcpy(message, trama.c_str());
-			
-			// Envía SMS de bienvenida 
-			sendSMS(phone, message);
-			
+			tramaSMS(newContact, trama); // Envía SMS de confirmación 
 			break;
 		// Confirma eliminación exitosa
 		case 2:
-		
-			// Copia número en array phone
-			strcpy(phone, phonenum.c_str());
-            
-			// Arma trama de confirmación
 			trama = "";
 			trama = "El numero registrado en la posicion: " + indexAndName + " ha sido eliminado exitosamente ";
-			
-			// Convierte trama en SMS
-			strcpy(message, trama.c_str());
-			
-			// Envía SMS de confirmación 
-			sendSMS(phone, message);
-
+			tramaSMS(phonenum, trama); // Envía SMS de confirmación 
 			break;
 		// Reporta error
 		case 3:
 			Serial.println("On case 3 ");
 			Serial.println("Value of DelOrAdd: ");
 			Serial.println(DelOrAdd);
-			
 			switch (SMSerror) {
+				// Error de registro
 				case 1:
-					// Copia número en array phone
-					strcpy(phone, phonenum.c_str());
-            
-					// Arma trama de confirmación
 					trama = "";
 					trama = "No se pudo registrar el numero. Revise el formato del mensaje por favor";
-			
-					// Convierte trama en SMS
-					strcpy(message, trama.c_str());
-			
-					// Envía SMS de confirmación 
-					sendSMS(phone, message);
+					tramaSMS(phonenum, trama); // Envía SMS de confirmación 
 					break;
+				// Error de eliminación
 				case 2:
-					// Copia número en array phone
-					strcpy(phone, phonenum.c_str());
-            
-					// Arma trama de confirmación
 					trama = "";
 					trama = "No se pudo eliminar el numero. Revise el formato del mensaje por favor";
-			
-					// Convierte trama en SMS
-					strcpy(message, trama.c_str());
-			
-					// Envía SMS de confirmación 
-					sendSMS(phone, message);
+					tramaSMS(phonenum, trama); // Envía SMS de confirmación 
 					break;
 				default:
-					
-					
 				break;
 			}
 			break;
@@ -575,5 +524,19 @@ void confirmSMS(int DelOrAdd )
 	}
 }
 
+//**********************************************************
 
+// Función que arma trama de mensaje para enviar notificación
+// via SMS
 
+void tramaSMS(String numbertoSend, String messagetoSend)
+{
+	// Copia número en array phone
+	strcpy(phone,numbertoSend.c_str());
+
+	// Convierte trama en mensaje
+	strcpy(message, messagetoSend.c_str());
+
+	// Envía SMS de confirmación 
+	sendSMS(phone, message);
+}
