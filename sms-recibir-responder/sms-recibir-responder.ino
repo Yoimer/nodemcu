@@ -46,6 +46,7 @@ String Password                           = "";
 String indexAndName                       = "";
 String newContact                         = "";
 String trama                              = "";
+String temperatureString                  = "";
 int SMSerror                                 = -1;
 int thirdComma                            = -1;
 int forthComma                            = -1;
@@ -62,7 +63,7 @@ bool isInPhonebook = false;
 char contact[13];
 char phone[21];
 char message[100];
-char temperatureString[6];
+//char temperatureString[6];
 
 // Inclusión de librerías de medición de temperatura
 // Dallas Temperature y OneWire
@@ -172,7 +173,9 @@ void loop()
 
 
   float temperature = getTemperature();
-  dtostrf(temperature, 2, 2, temperatureString);
+  //dtostrf(temperature, 2, 2, temperatureString);
+  temperatureString = "";
+  temperatureString = String(getTemperature());
   
   // imprime en consola el valor de temperatura
   Serial.println(temperatureString);
@@ -315,10 +318,10 @@ void endOfLineReached()
       if (j > 0)
       {
         isIncontact = true;
-        Serial.println("en phonebook"); //////////////////////////////////////////////
+        Serial.println("en phonebook");
         if (j <= 5 )
         {
-          Serial.println("autorizada"); //////////////////////////////////////////////
+          Serial.println("autorizada");
           isAuthorized = true;
         }
       }
@@ -383,6 +386,13 @@ void LastLineIsCMT()
     else if (lastLine.indexOf("DEL") >= 0)
     {
       DelAdd(2);
+    }
+	// SMS para eliminar consultar temperatura
+	// solo los 5 primeros números registrados pueden
+	// leer temperatura
+    else if (lastLine.indexOf("TEMP?") >= 0)
+    {
+	  getTemperatureSMS();
     }
     else
     {
@@ -474,10 +484,12 @@ int DelAdd(int DelOrAdd)
   indexAndName = lastLine.substring((firstComma + 1), (secondComma));
   newContact = "";
   newContact   = lastLine.substring((secondComma + 1), thirdComma);
+  
+  // confirma que está entre los 5 primeros usuarios del sim
   if (!isAuthorized)
   {
-    Serial.println(j); //////////////////////////////////////////////////////////////
-    Serial.println("Not authorized to Delete/Add"); /////////////////////////////////
+    Serial.println(j);
+    Serial.println("Not authorized to Delete/Add");
     return 0;
   }
   String tmpx;
@@ -637,4 +649,26 @@ void tramaSMS(String numbertoSend, String messagetoSend)
 
 	// Envía SMS de confirmación 
 	sendSMS(phone, message);
+}
+
+//**********************************************************
+
+// Función que obtiene temperatura del sensor DS18B20
+// y envía SMS
+
+void getTemperatureSMS()
+{   
+    // confirma que está entre los 5 primeros usuarios del sim
+	if (!isAuthorized)
+    {
+		Serial.println(j);
+		Serial.println("No autorizado para consultar temperatura");
+    }
+	else
+	{
+		
+		trama = "";
+		trama = "El valor de temperatura es: " + temperatureString + " grados Celsius";
+		tramaSMS(phonenum, trama);
+	}
 }
