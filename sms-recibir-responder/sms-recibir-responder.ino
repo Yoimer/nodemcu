@@ -1,11 +1,13 @@
 /*
 	Recibe y procesa SMS basados en strings predefinidos
 	incluyendo una contraseña para tomar acciones de control,
-	registro y eliminación de usuarios.
+	registro y eliminación de usuarios y monitoreo
+	de temperatura con el sensor DS18B20 usando las
+	librerías Dallas Temperature y OneWire.
 	Solo los 5 primeros contactos en el simcard
 	pueden agregar y eliminar usuarios.
 	Solo lo usuarios registrados en la "whitelist"
-	pueden tomar acciones de control.
+	pueden tomar acciones de control y consultar temperatura
 	Cualquier SMS distinto a los strings predefinidos
 	no serán tomados en cuenta por el sistema
 	Para control el SMS debe ser:
@@ -19,6 +21,8 @@
 	Ejemplo: ADD,6,04168262667,
 	DEL,posicion a borrar,
 	Ejemplo: DEL,85,
+	Para monitoreo de temperatura el comando es:
+	TEMP?
 */
 
 int8_t answer;
@@ -56,8 +60,32 @@ int f                                     = -1;
 int r                                     = 0;
 bool isInPhonebook = false;
 char contact[13];
-char phone[21]; // a global buffer to hold phone number
+char phone[21];
 char message[100];
+char temperatureString[6];
+
+// Inclusión de librerías de medición de temperatura
+// Dallas Temperature y OneWire
+
+// Tutorial de instalación de librerías para Arduino - Nodemcu
+//https://www.prometec.net/librerias/#
+
+// Enlace de descarga de librería Dallas Temperature
+// https://codeload.github.com/milesburton/Arduino-Temperature-Control-Library/zip/master
+
+#include <OneWire.h>
+
+#include <DallasTemperature.h>
+
+#define ONE_WIRE_BUS D1
+
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature DS18B20(&oneWire);
+
+//Conectiones entre Nodemcu y DS18B20
+//NodeMCU 3v3 con Vin de DS18B20
+//NodeMCU D1  con Data o Signal de DS18B20
+//NodeMCU GND con GND de DS18B20
 
 //**********************************************************
 
@@ -97,25 +125,58 @@ void setup() {
 }
 
 
+
+
+//**********************************************************
+
+// Función que mide temperatura
+
+float getTemperature() {
+  float temp;
+  do {
+    DS18B20.requestTemperatures(); 
+    temp = DS18B20.getTempCByIndex(0);
+    delay(100);
+  } while (temp == 85.0 || temp == (-127.0));
+  return temp;
+}
+
 //**********************************************************
 
 // Programa Principal
+
 void loop()
 {
-  if (Serial.available() > 0)
-  {
-    char lastCharRead = Serial.read();
-    if (lastCharRead == '\r' || lastCharRead == '\n')
-    {
-      endOfLineReached();
-    }
-    else
-    {
-      currentLine[currentLineIndex++] = lastCharRead;
-    }
-  }
-}
 
+  unsigned long previous = millis();
+
+  do
+  {
+	  // Si hay salida serial desde el SIM800
+	  if (Serial.available() > 0)
+	  {
+		char lastCharRead = Serial.read();
+		
+		// Lee cada caracter desde la salida serial hasta que \r o \n is encontrado (lo cual denota un fin de línea)
+		if (lastCharRead == '\r' || lastCharRead == '\n')
+		{
+		  endOfLineReached();
+		}
+
+		else
+		{
+		  currentLine[currentLineIndex++] = lastCharRead;
+		}
+      }
+  }while((millis() - previous) < 5000);  // espera actividad en puerto serial for 5 segundos
+
+
+  float temperature = getTemperature();
+  dtostrf(temperature, 2, 2, temperatureString);
+  
+  // imprime en consola el valor de temperatura
+  Serial.println(temperatureString);
+}
 //**********************************************************
 
 // Función que comprueba conexión física con el SIM800L
