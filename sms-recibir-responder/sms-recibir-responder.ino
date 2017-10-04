@@ -137,6 +137,8 @@ void power_on()
 // Función que envía comandos AT al SIM800L
 // Cuando int xpassword tiene el valor de 0 no consulta contraseña
 // Cuando int xpassword tiene el valor de 1 consulta contraseña
+// la contraseña consiste en los cuatro primeros números
+// guardados en la posición 1 del sim
 
 int8_t sendATcommand(char* ATcommand, char* expected_answer, unsigned int timeout, int xpassword)
 {
@@ -194,21 +196,40 @@ void endOfLineReached()
   lastLine = String(currentLine);
 
   // Comprueba que se está recibiendo una llamada
-  if (lastLine.startsWith("RING"))                                   // New incoming call
+  if (lastLine.startsWith("RING"))
   {
     Serial.println(lastLine);
     nextValidLineIsCall = true;
   }
   else
   {
-    if ((lastLine.length() > 0) && (nextValidLineIsCall))        // Rejects any empty line
+    if ((lastLine.length() > 0) && (nextValidLineIsCall))
     {
       //LastLineIsCLIP();
     }
 	// Comprueba que se está recibiendo un SMS
-    else if (lastLine.startsWith("+CMT:"))                          // New incoming SMS
+    else if (lastLine.startsWith("+CMT:"))
     {
-      // Imprime SMS recibido completo
+	  //Ejemplo de SMS cuando el número no está registrado
+	  // +CMT: "04168262667","","17/05/24,12:15:34-16"
+	  
+	  //Ejemplo de SMS cuando el número está registrado
+	  // y el nombre de contancto asignado es "1"
+	  // +CMT: "04168262667","1","17/05/24,12:15:34-16"
+	  
+	  // Los formatos de recepción dependen de la operadora
+	  // telefónica.
+	  // En algunos casos pueden incluir el códido internacional
+	  // del país tal como se muestra a continuación:
+	  
+	  //Ejemplo de SMS cuando el número no está registrado
+	  //+CMT: "+584168262667","","17/05/24,12:15:34-16"
+	  
+	  //Ejemplo de SMS cuando el número está registrado
+	  //y el nombre de contancto asignado es "1"
+	  //+CMT: "+584168262667","1","17/05/24,12:15:34-16"
+	  
+	  // Imprime SMS recibido completo
 	  // Incluye el número que envía el mensaje
 	  Serial.println(lastLine);
 
@@ -399,6 +420,22 @@ int DelAdd(int DelOrAdd)
     return 0;
   }
   String tmpx;
+  
+  // Comando AT para agregar y borrar usuarios en el SIM
+  
+  //Agregar
+  // AT+CPBW=posicion en sim,"numero a guadar",129,"nombre de contacto"
+  // 129 significa que el numero a guardar es nacional
+  // sin incluir el formato telefónico internacional ejemplo +58
+  // AT+CPBW=1,"04168262667",129,"1" guarda ese número en la
+  // posición 1 del sim y el nombre asignado es un ID de valor 1.
+  // cada ID está asignado en la base de datos con el nombre
+  // del usuario correspondiente
+  
+  //Borrar
+  // AT+CPBW=posicion en sim
+  // AT+CPBW=30 borraría posición 30 en el sim
+
   tmpx = "AT+CPBW=" + indexAndName + "\r\n\"";
   if ( DelOrAdd == 1 )
   {
