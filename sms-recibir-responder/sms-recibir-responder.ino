@@ -387,7 +387,7 @@ void LastLineIsCMT()
     {
       DelAdd(2);
     }
-	// SMS para eliminar consultar temperatura
+	// SMS para consultar temperatura
 	// solo los 5 primeros números registrados pueden
 	// leer temperatura
     else if (lastLine.indexOf("TEMP?") >= 0)
