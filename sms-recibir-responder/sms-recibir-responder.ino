@@ -80,6 +80,10 @@ char message[100];
 
 #define ONE_WIRE_BUS D1
 
+#define LOW_LEVEL_TEMPERATURE 28.50
+
+#define HIGH_LEVEL_TEMPERATURE 31.50
+
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DS18B20(&oneWire);
 
@@ -171,14 +175,34 @@ void loop()
       }
   }while((millis() - previous) < 5000);  // espera actividad en puerto serial for 5 segundos
 
-
+  // Mide temperatura
   float temperature = getTemperature();
-  //dtostrf(temperature, 2, 2, temperatureString);
   temperatureString = "";
   temperatureString = String(getTemperature());
-  
   // imprime en consola el valor de temperatura
   Serial.println(temperatureString);
+  
+  // envía SMS cuando la temperatura sobre pasa los umbrales
+  // cada 5 segundos a un número telefónico predefinido
+  if ((temperature >= 28.50) && (temperature < 31.50))
+  {
+	trama = "";
+	trama = "Alerta, la temperatura ha alcanzado el valor de: " + temperatureString + " grados Centigrados";
+	tramaSMS("04129501619", trama);
+  }
+  // apaga el equipo hasta que la temperatura alcance
+  // un valor por debajo de 31.50
+  // si se envía un SMS con el comando de encendido
+  // pero la temperatura es mayor a 31.50
+  // el comando no va a sobremandar el sistema
+  else if (temperature >= 31.50)
+  {
+	trama = "";
+	trama = "El equipo se ha apagado debido a que la temperatura alcanzo el valor de: " + temperatureString + " grados Centigrados";
+    // desactiva el relé con lógica inversa
+	digitalWrite(4, HIGH);
+	tramaSMS("04129501619", trama);
+  }
 }
 //**********************************************************
 
@@ -424,7 +448,7 @@ int  prendeapaga (int siono)
 	// Relé conectado en puerto digital D2-GPIO-4
 	switch (siono) {
 		case 0:
-			// Desactiva el relé
+			// Activa el relé con lógica inversa
 			digitalWrite(4, LOW);
 	  
 			// Copia número en array phone
@@ -434,7 +458,7 @@ int  prendeapaga (int siono)
 			sendSMS(phone, "Rele activado!");
 			break;
 		case 1:
-			// Activa el relé
+			// desactiva el relé con lógica inversa
 			digitalWrite(4, HIGH);
 	  
 			// Copia número en array phone
