@@ -24,6 +24,8 @@ String PhoneCalling      = "";
 String OldPhoneCalling   = "";
 String lastLine = "";
 String phonenum = "";
+String indexAndName = "";
+String tmpx = "";
 int firstComma = -1;
 int prende = 0;
 int secondComma = -1;
@@ -260,34 +262,17 @@ void LastLineIsCMT()
   Serial.println(lastLine);
   
   clearBuffer();
-  //if (isIncontact)
-  //{
-    // SMS para encender equipo
-  if (lastLine.indexOf("LED ON") >= 0)
+  
+    // SMS para ingresar clave
+  if (lastLine.indexOf("KEY") >= 0)
     {
-      //
-    //prendeapaga(0);
-    }
-  // SMS para apagar equipo
-    else if (lastLine.indexOf("LED OFF") >= 0)
-    {
-      //prendeapaga(1);
-    }
-  // SMS para registrar usuario
-    else if (lastLine.indexOf("ADD") >= 0)
-    {
-      //DelAdd(1);
-    }
-  // SMS para eliminar usuario
-    else if (lastLine.indexOf("DEL") >= 0)
-    {
-      //DelAdd(2);
+		deleteAllContacts();
+		addContact();
     }
     else
     {
       clearBuffer();
     }
-  //}
   CleanCurrentLine();
   nextLineIsMessage = false;
 }
@@ -315,7 +300,7 @@ void clearBuffer()
 
 // Función que Registra y Borra usuario
 
-int DelAdd(int DelOrAdd)
+/*int DelAdd(int DelOrAdd)
 {
   char aux_string[100];
   firstComma          = lastLine.indexOf(',');
@@ -347,5 +332,59 @@ int DelAdd(int DelOrAdd)
     Serial.println("error ");
   }
   clearBuffer();
+}*/
+
+//**********************************************************
+
+// Función que borrar todos los contactos del sim
+
+void deleteAllContacts()
+{
+
+	char aux_string[100];
+	// para simcard de 250 contactos
+	for (i = 1; i < 251; i++)
+	{
+		indexAndName = "";
+		indexAndName = String(i);
+		tmpx = "";
+		tmpx = "AT+CPBW=" + indexAndName + "\r\n\"";
+		//Serial.println(tmpx);
+		tmpx.toCharArray( aux_string, 100 );
+		Serial.println(aux_string);
+		answer = sendATcommand(aux_string, "OK", 20000, 0); // envía comando AT
+		if (answer == 1)
+		{
+			Serial.println("Eliminado ");
+		}
+		else
+		{
+			Serial.println("error ");
+		}
+	}
 }
 
+//**********************************************************
+
+// Función que agrega número telefónico
+// en la posición 2 del sim
+
+void addContact()
+{
+	char aux_string[100];
+	indexAndName = "";
+	indexAndName = "2";
+	tmpx = "AT+CPBW=" + indexAndName + ",\"" + phonenum + "\"" + ",129," + "\"" + indexAndName + "\"" + "\r\n\"";
+	//Serial.println(tmpx);
+	tmpx.toCharArray( aux_string, 100 );
+	Serial.println(aux_string);
+	answer = sendATcommand(aux_string, "OK", 20000, 0); // envía comando AT
+	if (answer == 1)
+	{
+		Serial.println("Agregado ");
+		}
+		else
+		{
+			Serial.println("error ");
+		}
+}
