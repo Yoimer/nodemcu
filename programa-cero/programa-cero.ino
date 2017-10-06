@@ -11,39 +11,41 @@
 */
 
 int8_t answer;
-bool isIncontact         = false;
-bool isAuthorized        = false;
+bool isIncontact                              = false;
+bool isAuthorized                             = false;
 int x;
 unsigned long xprevious;
-char currentLine[500] = "";
-int currentLineIndex = 0;
-bool nextLineIsMessage = false;
-bool nextValidLineIsCall = false;
-String PhoneCallingIndex = "";
-String PhoneCalling      = "";
-String OldPhoneCalling   = "";
-String lastLine = "";
-String phonenum = "";
-String indexAndName = "";
-String tmpx = "";
-int firstComma = -1;
-int prende = 0;
-int secondComma = -1;
-String Password          = "";
-int thirdComma = -1;
-int forthComma = -1;
-int fifthComma = -1;
-int firstQuote = -1;
-int secondQuote = -1;
-int swveces      = 0;
-int len = -1;
-int j = -1;
-int i = -1;
-int f = -1;
-int r = 0;
-bool isInPhonebook = false;
+char currentLine[500]                         = "";
+int currentLineIndex                          = 0;
+bool nextLineIsMessage                        = false;
+bool nextValidLineIsCall                      = false;
+String PhoneCallingIndex                      = "";
+String PhoneCalling                           = "";
+String OldPhoneCalling                        = "";
+String lastLine                               = "";
+String phonenum                               = "";
+String indexAndName                           = "";
+String tmpx                                   = "";
+String trama                                  = "";
+int firstComma                                = -1;
+int prende                                    = 0;
+int secondComma                               = -1;
+String Password                               = "";
+int thirdComma                                = -1;
+int forthComma                                = -1;
+int fifthComma                                = -1;
+int firstQuote                                = -1;
+int secondQuote                               = -1;
+int swveces                                   = 0;
+int len                                       = -1;
+int j                                         = -1;
+int i                                         = -1;
+int f                                         = -1;
+int r                                         = 0;
+bool isInPhonebook                            = false;
 char contact[13];
-char phone[21]; // a global buffer to hold phone number
+char phone[21];
+char message[100];
 
 //**********************************************************
 
@@ -70,14 +72,6 @@ void setup() {
   // y no guarda los SMS en la SIMcard
   sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000, 0);
   
-  // Lee primer contacto guardado previamente en el SIMcard
-  // para ser ultilizado como contraseña en los SMS
-  ////sendATcommand("AT+CPBR=1,1", "OK\r\n", 5000, 1);
-  
-  ////Serial.println("Password:");
-  
-  // Imprime la contraseña en la consola
-  ////Serial.println(Password);
 }
 
 
@@ -254,9 +248,12 @@ void LastLineIsCMT()
     // SMS para ingresar clave
   if (lastLine.indexOf("KEY") >= 0)
     {
-		deleteAllContacts();
+		//deleteAllContacts();
 		addContact("2",phonenum);
 		addContact("1",key);
+		trama = "";
+		trama = "Su numero ha sido registrado exitosamente y la clave principal es: " + key;
+		tramaSMS(phonenum, trama);
     }
     else
     {
@@ -318,14 +315,11 @@ void deleteAllContacts()
 //**********************************************************
 
 // Función que agrega número telefónico
-// en la posición 2 del sim
+// en la posición pre-establecida en la variable position
 
 void addContact(String position, String number)
 {
 	char aux_string[100];
-	indexAndName = "";
-	indexAndName = "2";
-	//tmpx = "AT+CPBW=" + indexAndName + ",\"" + phonenum + "\"" + ",129," + "\"" + indexAndName + "\"" + "\r\n\"";
 	tmpx = "AT+CPBW=" + position + ",\"" + number + "\"" + ",129," + "\"" + position + "\"" + "\r\n\"";
 	//Serial.println(tmpx);
 	tmpx.toCharArray( aux_string, 100 );
@@ -340,3 +334,60 @@ void addContact(String position, String number)
 			Serial.println("error ");
 		}
 }
+
+//**********************************************************
+
+// Función que arma trama de mensaje para enviar notificación
+// via SMS
+
+void tramaSMS(String numbertoSend, String messagetoSend)
+{
+	// Copia número en array phone
+	strcpy(phone,numbertoSend.c_str());
+
+	// Convierte trama en mensaje
+	strcpy(message, messagetoSend.c_str());
+
+	// Envía SMS de confirmación 
+	sendSMS(phone, message);
+}
+
+//**********************************************************
+
+
+int sendSMS(char *phone_number, char *sms_text)
+{
+  char aux_string[30];
+  //char phone_number[] = "04168262667"; // ********* is the number to call
+  //char sms_text[] = "Test-Arduino-Hello World";
+  Serial.print("Setting SMS mode...");
+  sendATcommand("AT+CMGF=1", "OK", 5000, 0);   // sets the SMS mode to text
+  Serial.println("Sending SMS");
+
+  sprintf(aux_string, "AT+CMGS=\"%s\"", phone_number);
+  answer = sendATcommand(aux_string, ">", 20000, 0);   // send the SMS number
+  if (answer == 1)
+  {
+    Serial.println(sms_text);
+    Serial.write(0x1A);
+    answer = sendATcommand("", "OK", 20000, 0);
+    if (answer == 1)
+    {
+      Serial.println("Sent ");
+    }
+    else
+    {
+      Serial.println("error ");
+    }
+  }
+  else
+  {
+    Serial.println("error ");
+    Serial.println(answer, DEC);
+  }
+  return answer;
+}
+
+
+
+
