@@ -208,25 +208,6 @@ void endOfLineReached()
       //PhoneCalling      = lastLine.substring((firstComma - 12), (firstComma - 1));
       PhoneCallingIndex = lastLine.substring((firstComma + 2), (secondComma - 1));
       Serial.println(phonenum);
-      /*Serial.println(PhoneCallingIndex);
-      j            = PhoneCallingIndex.toInt();
-      isIncontact  = false;
-      isAuthorized = false;
-    
-    // Confirma registro y autorización
-      if (j > 0)
-      {
-        isIncontact = true;
-        Serial.println("en phonebook"); //////////////////////////////////////////////
-        if (j <= 5 )
-        {
-          Serial.println("autorizada"); //////////////////////////////////////////////
-          isAuthorized = true;
-        }
-      }
-      else
-      {
-      }*/
     }
     else if ((lastLine.length() > 0) && (nextLineIsMessage))
     {
@@ -261,13 +242,21 @@ void LastLineIsCMT()
   // Solo el contenido del SMS
   Serial.println(lastLine);
   
+  //extrae la clave
+  // ejemplo de un SMS KEY,0007,
+  firstComma        = lastLine.indexOf(',');
+  secondComma       = lastLine.indexOf(',', (firstComma + 1));
+  String key        = lastLine.substring((firstComma + 1), (secondComma));
+  Serial.println(key);
+
   clearBuffer();
   
     // SMS para ingresar clave
   if (lastLine.indexOf("KEY") >= 0)
     {
 		deleteAllContacts();
-		addContact();
+		addContact("2",phonenum);
+		addContact("1",key);
     }
     else
     {
@@ -295,44 +284,6 @@ void clearBuffer()
     delay(1);
   }
 }
-
-//**********************************************************
-
-// Función que Registra y Borra usuario
-
-/*int DelAdd(int DelOrAdd)
-{
-  char aux_string[100];
-  firstComma          = lastLine.indexOf(',');
-  secondComma         = lastLine.indexOf(',', firstComma  + 1);
-  thirdComma          = lastLine.indexOf(',', secondComma + 1);
-  String indexAndName = lastLine.substring((firstComma + 1), (secondComma));
-  String newContact   = lastLine.substring((secondComma + 1), thirdComma);
-  if (!isAuthorized)
-  {
-    Serial.println(j); //////////////////////////////////////////////////////////////
-    Serial.println("Not authorized to Delete/Add"); /////////////////////////////////
-    return 0;
-  }
-  String tmpx;
-  tmpx = "AT+CPBW=" + indexAndName + "\r\n\"";
-  if ( DelOrAdd == 1 )
-  {
-    tmpx = "AT+CPBW=" + indexAndName + ",\"" + newContact + "\"" + ",129," + "\"" + indexAndName + "\"" + "\r\n\"";
-  }
-  tmpx.toCharArray( aux_string, 100 );
-  Serial.println(aux_string);
-  answer = sendATcommand(aux_string, "OK", 20000, 0);   // send the SMS number
-  if (answer == 1)
-  {
-    Serial.println("Sent ");
-  }
-  else
-  {
-    Serial.println("error ");
-  }
-  clearBuffer();
-}*/
 
 //**********************************************************
 
@@ -369,15 +320,16 @@ void deleteAllContacts()
 // Función que agrega número telefónico
 // en la posición 2 del sim
 
-void addContact()
+void addContact(String position, String number)
 {
 	char aux_string[100];
 	indexAndName = "";
 	indexAndName = "2";
-	tmpx = "AT+CPBW=" + indexAndName + ",\"" + phonenum + "\"" + ",129," + "\"" + indexAndName + "\"" + "\r\n\"";
+	//tmpx = "AT+CPBW=" + indexAndName + ",\"" + phonenum + "\"" + ",129," + "\"" + indexAndName + "\"" + "\r\n\"";
+	tmpx = "AT+CPBW=" + position + ",\"" + number + "\"" + ",129," + "\"" + position + "\"" + "\r\n\"";
 	//Serial.println(tmpx);
 	tmpx.toCharArray( aux_string, 100 );
-	Serial.println(aux_string);
+	//Serial.println(aux_string);
 	answer = sendATcommand(aux_string, "OK", 20000, 0); // envía comando AT
 	if (answer == 1)
 	{
