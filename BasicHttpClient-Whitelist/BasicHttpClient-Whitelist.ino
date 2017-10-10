@@ -31,7 +31,7 @@ void setup() {
         delay(1000);
     }
 
-    WiFiMulti.addAP("SSID", "PASSWORD");
+    WiFiMulti.addAP("Casa", "remioy2006202");
 
 }
 
@@ -44,9 +44,10 @@ void loop() {
         USE_SERIAL.print("[HTTP] begin...\n");
         // configure traged server and url
         //http.begin("https://192.168.1.12/test.html", "7a 9c f4 db 40 d3 62 5a 6e 21 bc 5c cc 66 c8 3e a1 45 59 38"); //HTTPS
-        http.begin("http://192.168.1.12/test.html"); //HTTP
+        //http.begin("http://192.168.1.12/test.html"); //HTTP
+		http.begin("http://192.168.0.101/sandbox/whitelist.txt"); //HTTP
 
-        USE_SERIAL.print("[HTTP] GET...\n");
+        //USE_SERIAL.print("[HTTP] GET...\n");
         // start connection and send HTTP header
         int httpCode = http.GET();
 
