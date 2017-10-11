@@ -47,7 +47,10 @@ String indexAndName                       = "";
 String newContact                         = "";
 String trama                              = "";
 String temperatureString                  = "";
-int SMSerror                                 = -1;
+String BuildString                        = "";
+String id                                 = "";
+//String action                             = "";
+int SMSerror                              = -1;
 int thirdComma                            = -1;
 int forthComma                            = -1;
 int fifthComma                            = -1;
@@ -63,7 +66,7 @@ bool isInPhonebook = false;
 char contact[13];
 char phone[21];
 char message[100];
-//char temperatureString[6];
+
 
 // Inclusión de librerías de medición de temperatura
 // Dallas Temperature y OneWire
@@ -91,6 +94,11 @@ DallasTemperature DS18B20(&oneWire);
 //NodeMCU 3v3 con Vin de DS18B20
 //NodeMCU D1  con Data o Signal de DS18B20
 //NodeMCU GND con GND de DS18B20
+
+// Inclusión de librerías WIFI para ESP8266
+#include <ESP8266WiFiMulti.h>
+#include <ESP8266HTTPClient.h>
+ESP8266WiFiMulti WiFiMulti;
 
 //**********************************************************
 
@@ -127,10 +135,10 @@ void setup() {
   
   // Imprime la contraseña en la consola
   Serial.println(Password);
+  
+  // Conecta con router Wifi
+  WiFiMulti.addAP("Casa","remioy2006202");
 }
-
-
-
 
 //**********************************************************
 
@@ -203,6 +211,40 @@ void loop()
 	digitalWrite(4, HIGH);
 	tramaSMS("04129501619", trama);
   }
+  
+  // Conecta a internet para consultar o publicar resultados
+   char msgx[1024];  
+   char telx[1024];
+   GetInfoFromWeb(0); 
+   
+   // String que viene desde el servidor
+   //+9999#99999999999$SMS*1/
+   //9999                -> ID en base de datos
+   //99999999999         -> Celular de 11 dígitos que recibe el mensaje
+   //SMS                 -> Contenido del mensaje
+   //1                   -> Acción que se toma en el sistema
+   //1                   -> Activa Relé
+   //2                   -> Desactiva Relé
+   //cada acción debe documentarse acá
+   
+   id            = BuildString.substring(BuildString.indexOf("+")+1,BuildString.indexOf("#"));
+   String tel    = BuildString.substring(BuildString.indexOf("#")+1,BuildString.indexOf("$"));  
+   String msg    = BuildString.substring(BuildString.indexOf("$")+1,BuildString.indexOf("*"));
+   String action = BuildString.substring(BuildString.indexOf("*")+1,BuildString.indexOf("/"));
+   Serial.println("id :"+id);
+   Serial.println("tel:"+tel);
+   Serial.println("msg:"+msg);
+   Serial.println("action:"+action);
+   Serial.print("action length: ");
+  
+   //if ( tel   != "9999999999")
+	if ( action != "AA")
+    {
+		strcpy(telx, tel.c_str());
+		strcpy(msgx, msg.c_str());
+		sendSMS  (telx,msgx) ;
+		//GetInfoFromWeb(1); 
+    }
 }
 //**********************************************************
 
@@ -696,3 +738,81 @@ void getTemperatureSMS()
 		tramaSMS(phonenum, trama);
 	}
 }
+
+
+//**********************************************************
+
+// Función que se comunica con servidor web y
+// verifica comandos de control y registro
+
+int GetInfoFromWeb (int router)
+{
+//delay(10000);
+delay(5000);
+String xp;
+if((WiFiMulti.run() == WL_CONNECTED) ) 
+  {  
+  Serial.println("[++++++GetInfoFromWeb+++++++");
+  
+  /*xp="http://castillolk.com.ve/proyectos/sms/readmensajetexto.php?sw=1";
+  if (router == 1)
+     {
+      xp="http://castillolk.com.ve/proyectos/sms/readmensajetexto.php?sw=2&id="+id;
+     }
+   */
+   
+  // Servidor web local virtual
+  // Debe ser uno real conectado a internet
+  xp = "http://192.168.0.164/sandbox/whitelist.txt";
+  Serial.println(xp); 
+  HTTPClient http;  
+  http.begin(xp); 
+  int httpCode = http.GET();
+  if(httpCode > 0) 
+  {
+  if(httpCode == HTTP_CODE_OK) 
+    {
+    BuildString = http.getString();
+	Serial.println(BuildString);
+    }
+  } 
+  else 
+  {
+  Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+  }
+  http.end();
+  }   
+}
+
+/*
+// LED en NODEMCU con lógica inversa
+    digitalWrite(LED_BUILTIN, siono);
+	
+	// Relé conectado en puerto digital D2-GPIO-4
+	switch (siono) {
+		case 0:
+			// Activa el relé con lógica inversa
+			digitalWrite(4, LOW);
+	  
+			// Copia número en array phone
+			phonenum.toCharArray(phone, 21);
+	  
+			// Envía SMS de confirmación 
+			sendSMS(phone, "Rele activado!");
+			break;
+		case 1:
+			// desactiva el relé con lógica inversa
+			digitalWrite(4, HIGH);
+	  
+			// Copia número en array phone
+			phonenum.toCharArray(phone, 21);
+	  
+			// Envía SMS de confirmación 
+			sendSMS(phone, "Rele desactivado!");
+			break;
+		default:
+		break;
+
+
+
+*/
