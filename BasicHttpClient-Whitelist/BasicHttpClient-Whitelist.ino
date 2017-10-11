@@ -51,6 +51,7 @@ void setup()
   Serial.println("Password:");   
   Serial.println(Password);
   WiFiMulti.addAP("Casa","remioy2006202");
+  //WiFiMulti.addAP("Terrorista","remioyroman");
   
  }
 
@@ -60,23 +61,12 @@ void loop()
     char msgx[1024];  
     char telx[1024];
     GetInfoFromWeb(0); 
-  // +ID#XXXXXXXXXX$MENSAJE
-  // +9999#9999999999$
-    /*id         = BuildString.substring(BuildString.indexOf("+")+1,BuildString.indexOf("#"));
+    id         = BuildString.substring(BuildString.indexOf("+")+1,BuildString.indexOf("#"));
     String tel = BuildString.substring(BuildString.indexOf("#")+1,BuildString.indexOf("$"));  
-  String msg = BuildString.substring(BuildString.indexOf("$")+1); 
-  Serial.println("id :"+id);
-  Serial.println("tel:"+tel);
-  Serial.println("msg:"+msg);
-  
-  if ( tel   != "99999999999")
-     {  
-       strcpy(telx, tel.c_str());
-       strcpy(msgx, msg.c_str());
-       sendSMS  (telx,msgx) ;
-       GetInfoFromWeb(1); 
-     } */
-  
+    String msg = BuildString.substring(BuildString.indexOf("$")+1); 
+    Serial.println("id :"+id);
+    Serial.println("tel:"+tel);
+    Serial.println("msg:"+msg);
 }
 
 ///////////////////////////////////////////////////////
@@ -195,11 +185,6 @@ String xp;
 if((WiFiMulti.run() == WL_CONNECTED) ) 
   {  
   Serial.println("[++++++GetInfoFromWeb+++++++");
-  /*xp="http://castillolk.com.ve/proyectos/sms/readmensajetexto.php?sw=1";
-  if (router == 1)
-     {
-		xp="http://castillolk.com.ve/proyectos/sms/readmensajetexto.php?sw=2&id="+id;
-     }*/
   xp = "http://192.168.0.101/sandbox/whitelist.txt";
   Serial.println(xp); 
   HTTPClient http;  
