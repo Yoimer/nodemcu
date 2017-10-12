@@ -234,13 +234,6 @@ void loop()
    //1                   -> Desactiva Relé por lógica inversa
    //cada acción debe documentarse acá
    
-   
-    //        +9999#99999999999$SMS*AA/
-   
-   
-   
-   
-   
    id            = BuildString.substring(BuildString.indexOf("+")+1,BuildString.indexOf("#"));
    String tel    = BuildString.substring(BuildString.indexOf("#")+1,BuildString.indexOf("$"));  
    String msg    = BuildString.substring(BuildString.indexOf("$")+1,BuildString.indexOf("*"));
@@ -770,6 +763,8 @@ String xp;
 if((WiFiMulti.run() == WL_CONNECTED) ) 
   {  
 	Serial.println("[++++++GetInfoFromWeb+++++++");
+
+	// control de relé desde internet
 
 	// Relé conectado en puerto digital D2-GPIO-4
 	switch (router) {
