@@ -215,17 +215,31 @@ void loop()
   // Conecta a internet para consultar o publicar resultados
    char msgx[1024];  
    char telx[1024];
-   GetInfoFromWeb(0); 
    
-   // String que viene desde el servidor
+   // -1 no tomará ninguna acción, solo va a consultar a servidor web
+   GetInfoFromWeb(-1); 
+   
+   
+   // String que viene desde el servidor a modo de espera
+   // +9999#99999999999$SMS*AA/
+   
+   // String que viene desde el servidor para tomar acción
    //+9999#99999999999$SMS*1/
    //9999                -> ID en base de datos
    //99999999999         -> Celular de 11 dígitos que recibe el mensaje
    //SMS                 -> Contenido del mensaje
    //1                   -> Acción que se toma en el sistema
-   //1                   -> Activa Relé
-   //2                   -> Desactiva Relé
+   
+   //0                   -> Activa Relé por lógica inversa
+   //1                   -> Desactiva Relé por lógica inversa
    //cada acción debe documentarse acá
+   
+   
+    //        +9999#99999999999$SMS*AA/
+   
+   
+   
+   
    
    id            = BuildString.substring(BuildString.indexOf("+")+1,BuildString.indexOf("#"));
    String tel    = BuildString.substring(BuildString.indexOf("#")+1,BuildString.indexOf("$"));  
@@ -235,15 +249,18 @@ void loop()
    Serial.println("tel:"+tel);
    Serial.println("msg:"+msg);
    Serial.println("action:"+action);
-   Serial.print("action length: ");
   
-   //if ( tel   != "9999999999")
+   //Formato de mensaje presente en el servidor
+   //   +9999#99999999999$SMS*AA/
 	if ( action != "AA")
     {
 		strcpy(telx, tel.c_str());
 		strcpy(msgx, msg.c_str());
+		int control = action.toInt();
+		Serial.println(control);
+		GetInfoFromWeb(control);
 		sendSMS  (telx,msgx) ;
-		//GetInfoFromWeb(1); 
+		 
     }
 }
 //**********************************************************
@@ -752,23 +769,42 @@ delay(5000);
 String xp;
 if((WiFiMulti.run() == WL_CONNECTED) ) 
   {  
-  Serial.println("[++++++GetInfoFromWeb+++++++");
-  
-  /*xp="http://castillolk.com.ve/proyectos/sms/readmensajetexto.php?sw=1";
-  if (router == 1)
-     {
-      xp="http://castillolk.com.ve/proyectos/sms/readmensajetexto.php?sw=2&id="+id;
-     }
-   */
-   
+	Serial.println("[++++++GetInfoFromWeb+++++++");
+
+	// Relé conectado en puerto digital D2-GPIO-4
+	switch (router) {
+		case 0:
+			
+			Serial.println("Case 0");
+			
+			//LED en NODEMCU con lógica inversa
+			digitalWrite(LED_BUILTIN, router);
+			
+			// Activa el relé con lógica inversa
+			digitalWrite(4, LOW);
+			break;
+		case 1:
+			
+			Serial.println("Case 1");
+			
+			//LED en NODEMCU con lógica inversa
+			digitalWrite(LED_BUILTIN, router);
+			
+			// desactiva el relé con lógica inversa
+			digitalWrite(4, HIGH);
+			break;
+		default:
+		break;
+	}
+
   // Servidor web local virtual
   // Debe ser uno real conectado a internet
   xp = "http://192.168.0.164/sandbox/whitelist.txt";
-  Serial.println(xp); 
-  HTTPClient http;  
-  http.begin(xp); 
+  Serial.println(xp);
+  HTTPClient http;
+  http.begin(xp);
   int httpCode = http.GET();
-  if(httpCode > 0) 
+  if(httpCode > 0)
   {
   if(httpCode == HTTP_CODE_OK) 
     {
@@ -783,36 +819,3 @@ if((WiFiMulti.run() == WL_CONNECTED) )
   http.end();
   }   
 }
-
-/*
-// LED en NODEMCU con lógica inversa
-    digitalWrite(LED_BUILTIN, siono);
-	
-	// Relé conectado en puerto digital D2-GPIO-4
-	switch (siono) {
-		case 0:
-			// Activa el relé con lógica inversa
-			digitalWrite(4, LOW);
-	  
-			// Copia número en array phone
-			phonenum.toCharArray(phone, 21);
-	  
-			// Envía SMS de confirmación 
-			sendSMS(phone, "Rele activado!");
-			break;
-		case 1:
-			// desactiva el relé con lógica inversa
-			digitalWrite(4, HIGH);
-	  
-			// Copia número en array phone
-			phonenum.toCharArray(phone, 21);
-	  
-			// Envía SMS de confirmación 
-			sendSMS(phone, "Rele desactivado!");
-			break;
-		default:
-		break;
-
-
-
-*/
