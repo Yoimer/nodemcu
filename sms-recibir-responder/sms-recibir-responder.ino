@@ -216,22 +216,6 @@ void loop()
   // Conecta a internet para consultar o publicar resultados
    //consulta en servidor web
    GetInfoFromWeb(-1); 
-   
-   // String que viene desde el servidor a modo de espera
-   // +9999#99999999999$SMS*AA/
-   
-   // String que viene desde el servidor para tomar acción
-   //+9999#99999999999$SMS*1/
-   //9999                -> ID en base de datos
-   //99999999999         -> Celular de 11 dígitos que recibe el mensaje
-   //SMS                 -> Contenido del mensaje
-   //1                   -> Acción que se toma en el sistema
-   
-   //0                   -> Activa Relé por lógica inversa
-   //1                   -> Desactiva Relé por lógica inversa
-   //cada acción debe documentarse acá
-   
-
 }
 //**********************************************************
 
