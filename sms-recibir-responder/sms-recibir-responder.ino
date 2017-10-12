@@ -137,7 +137,8 @@ void setup() {
   Serial.println(Password);
   
   // Conecta con router Wifi
-  WiFiMulti.addAP("Casa","remioy2006202");
+  //WiFiMulti.addAP("Casa","remioy2006202");
+  WiFiMulti.addAP("FARC-ELN-ISIS","remioyroman");
 }
 
 //**********************************************************
@@ -213,12 +214,8 @@ void loop()
   }
   
   // Conecta a internet para consultar o publicar resultados
-   char msgx[1024];  
-   char telx[1024];
-   
-   // -1 no tomará ninguna acción, solo va a consultar a servidor web
+   //consulta en servidor web
    GetInfoFromWeb(-1); 
-   
    
    // String que viene desde el servidor a modo de espera
    // +9999#99999999999$SMS*AA/
@@ -234,27 +231,7 @@ void loop()
    //1                   -> Desactiva Relé por lógica inversa
    //cada acción debe documentarse acá
    
-   id            = BuildString.substring(BuildString.indexOf("+")+1,BuildString.indexOf("#"));
-   String tel    = BuildString.substring(BuildString.indexOf("#")+1,BuildString.indexOf("$"));  
-   String msg    = BuildString.substring(BuildString.indexOf("$")+1,BuildString.indexOf("*"));
-   String action = BuildString.substring(BuildString.indexOf("*")+1,BuildString.indexOf("/"));
-   Serial.println("id :"+id);
-   Serial.println("tel:"+tel);
-   Serial.println("msg:"+msg);
-   Serial.println("action:"+action);
-  
-   //Formato de mensaje presente en el servidor
-   //   +9999#99999999999$SMS*AA/
-	if ( action != "AA")
-    {
-		strcpy(telx, tel.c_str());
-		strcpy(msgx, msg.c_str());
-		int control = action.toInt();
-		Serial.println(control);
-		GetInfoFromWeb(control);
-		sendSMS  (telx,msgx) ;
-		 
-    }
+
 }
 //**********************************************************
 
@@ -764,37 +741,10 @@ if((WiFiMulti.run() == WL_CONNECTED) )
   {  
 	Serial.println("[++++++GetInfoFromWeb+++++++");
 
-	// control de relé desde internet
-
-	// Relé conectado en puerto digital D2-GPIO-4
-	switch (router) {
-		case 0:
-			
-			Serial.println("Case 0");
-			
-			//LED en NODEMCU con lógica inversa
-			digitalWrite(LED_BUILTIN, router);
-			
-			// Activa el relé con lógica inversa
-			digitalWrite(4, LOW);
-			break;
-		case 1:
-			
-			Serial.println("Case 1");
-			
-			//LED en NODEMCU con lógica inversa
-			digitalWrite(LED_BUILTIN, router);
-			
-			// desactiva el relé con lógica inversa
-			digitalWrite(4, HIGH);
-			break;
-		default:
-		break;
-	}
-
   // Servidor web local virtual
   // Debe ser uno real conectado a internet
-  xp = "http://192.168.0.164/sandbox/whitelist.txt";
+  //xp = "http://192.168.0.164/sandbox/whitelist.txt";
+  xp = "http://192.168.5.107/sandbox/whitelist.txt";
   Serial.println(xp);
   HTTPClient http;
   http.begin(xp);
@@ -803,14 +753,72 @@ if((WiFiMulti.run() == WL_CONNECTED) )
   {
   if(httpCode == HTTP_CODE_OK) 
     {
-    BuildString = http.getString();
-	Serial.println(BuildString);
+		BuildString = http.getString();
+		Serial.println(BuildString);
+
+		// String que viene desde el servidor a modo de espera
+		// +9999#99999999999$SMS*AA/
+   
+		// String que viene desde el servidor para tomar acción
+		//+9999#99999999999$SMS*1/
+		//9999                -> ID en base de datos
+		//99999999999         -> Celular de 11 dígitos que recibe el mensaje
+		//SMS                 -> Contenido del mensaje
+		//1                   -> Acción que se toma en el sistema
+   
+		//0                   -> Activa Relé por lógica inversa
+		//1                   -> Desactiva Relé por lógica inversa
+		//cada acción debe documentarse acá
+		
+		char msgx[1024];  
+		char telx[1024];
+
+		id             = BuildString.substring(BuildString.indexOf("+")+1,BuildString.indexOf("#"));
+		String tel     = BuildString.substring(BuildString.indexOf("#")+1,BuildString.indexOf("$"));  
+		String msg     = BuildString.substring(BuildString.indexOf("$")+1,BuildString.indexOf("*"));
+		String action  = BuildString.substring(BuildString.indexOf("*")+1,BuildString.indexOf("/"));
+		Serial.println("id :"+id);
+		Serial.println("tel:"+tel);
+		Serial.println("msg:"+msg);
+		Serial.println("action:"+action);
+		
+		//Formato de mensaje presente en el servidor
+		//+9999#99999999999$SMS*AA/
+		if ( action != "AA")
+		{
+			strcpy(telx, tel.c_str());
+			strcpy(msgx, msg.c_str());
+			int control = action.toInt();
+			Serial.println(control);
+			// control de relé desde internet
+			// Relé conectado en puerto digital D2-GPIO-4
+			switch (control)
+			{
+				// Activa el relé con lógica inversa 
+				case 0:
+					Serial.println("Case 0");
+					//LED en NODEMCU con lógica inversa
+					digitalWrite(LED_BUILTIN, router);
+					digitalWrite(4, LOW);
+					break;
+				// desactiva el relé con lógica inversa
+				case 1:
+					Serial.println("Case 1");
+					//LED en NODEMCU con lógica inversa
+					digitalWrite(LED_BUILTIN, router);
+					digitalWrite(4, HIGH);
+					break;
+				default:
+				break;
+			}
+			sendSMS  (telx,msgx) ;
+		}
     }
   } 
   else 
   {
-  Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+	Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
   }
-  http.end();
+	http.end();
   }   
 }
