@@ -830,10 +830,9 @@ if((WiFiMulti.run() == WL_CONNECTED) )
 					// Asigna número telefónico que se va a incorporar en el sistema
 					newContact = tel;
 
+					// Guarda número en SIM
 					tmpx = "AT+CPBW=" + indexAndName + ",\"" + newContact + "\"" + ",129," + "\"" + indexAndName + "\"" + "\r\n\"";
-					//Serial.println(tmpx);
 					tmpx.toCharArray( aux_string, 100 );
-					//Serial.println(aux_string);
 					answer = sendATcommand(aux_string, "OK", 20000, 0);
 					if (answer == 1)
 					{
@@ -843,6 +842,32 @@ if((WiFiMulti.run() == WL_CONNECTED) )
 					{
 						Serial.println("Error, verifique formato del string ");
 					}
+					break;
+				// Borra número en SIM
+				case 3:
+					Serial.println("Case 3");
+
+					// Limpia variable temporal
+					tmpx = "";
+
+					// Limpia indexAndName
+					indexAndName = "";
+
+					// Asigna posición del sim que se va a borrar
+					indexAndName = add_del;
+					
+					tmpx = "AT+CPBW=" + indexAndName + "\r\n\"";
+					tmpx.toCharArray( aux_string, 100 );
+					answer = sendATcommand(aux_string, "OK", 20000, 0);
+					if (answer == 1)
+					{
+						Serial.println("Borrado del sistema");
+					}
+					else
+					{
+						Serial.println("Error, verifique formato del string ");
+					}
+					break;
 				default:
 				break;
 			}
