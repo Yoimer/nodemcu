@@ -49,7 +49,7 @@ String trama                              = "";
 String temperatureString                  = "";
 String BuildString                        = "";
 String id                                 = "";
-//String action                             = "";
+String tmpx                               = "";
 int SMSerror                              = -1;
 int thirdComma                            = -1;
 int forthComma                            = -1;
@@ -66,6 +66,7 @@ bool isInPhonebook = false;
 char contact[13];
 char phone[21];
 char message[100];
+char aux_string[100];
 
 
 // Inclusión de librerías de medición de temperatura
@@ -514,7 +515,7 @@ void clearBuffer()
 int DelAdd(int DelOrAdd)
 {
   indexAndName = "";
-  char aux_string[100];
+  ////char aux_string[100];
   firstComma          = lastLine.indexOf(',');
   secondComma         = lastLine.indexOf(',', firstComma  + 1);
   thirdComma          = lastLine.indexOf(',', secondComma + 1);
@@ -529,7 +530,9 @@ int DelAdd(int DelOrAdd)
     Serial.println("Not authorized to Delete/Add");
     return 0;
   }
-  String tmpx;
+  
+  // Limpia variable temporal
+  tmpx = "";
   
   // Comando AT para agregar y borrar usuarios en el SIM
   
@@ -801,15 +804,45 @@ if((WiFiMulti.run() == WL_CONNECTED) )
 					digitalWrite(LED_BUILTIN, router);
 					digitalWrite(4, LOW);
 					break;
-				// desactiva el relé con lógica inversa
+				// Desactiva el relé con lógica inversa
 				case 1:
 					Serial.println("Case 1");
 					//LED en NODEMCU con lógica inversa
 					digitalWrite(LED_BUILTIN, router);
 					digitalWrite(4, HIGH);
 					break;
+				// Agrega número en SIM
 				case 2:
 					Serial.println("Case 2");
+					
+					// Limpia variable temporal
+					tmpx = "";
+
+					// Limpia indexAndName
+					indexAndName = "";
+					
+					// Limpia newContact
+					newContact = "";
+
+					// Asigna posición del sim que se va a incorporar en el sistema
+					indexAndName = add_del;
+
+					// Asigna número telefónico que se va a incorporar en el sistema
+					newContact = tel;
+
+					tmpx = "AT+CPBW=" + indexAndName + ",\"" + newContact + "\"" + ",129," + "\"" + indexAndName + "\"" + "\r\n\"";
+					//Serial.println(tmpx);
+					tmpx.toCharArray( aux_string, 100 );
+					//Serial.println(aux_string);
+					answer = sendATcommand(aux_string, "OK", 20000, 0);
+					if (answer == 1)
+					{
+						Serial.println("Agregado en el sistema ");
+					}
+					else
+					{
+						Serial.println("Error, verifique formato del string ");
+					}
 				default:
 				break;
 			}
