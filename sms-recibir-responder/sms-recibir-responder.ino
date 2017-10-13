@@ -553,7 +553,7 @@ int DelAdd(int DelOrAdd)
   }
   tmpx.toCharArray( aux_string, 100 );
   Serial.println(aux_string);
-  answer = sendATcommand(aux_string, "OK", 20000, 0);   // send the SMS number
+  answer = sendATcommand(aux_string, "OK", 20000, 0);
   if (answer == 1)
   {
     Serial.println("Sent ");
@@ -741,30 +741,46 @@ if((WiFiMulti.run() == WL_CONNECTED) )
 		Serial.println(BuildString);
 
 		// String que viene desde el servidor a modo de espera
-		// +9999#99999999999$SMS*AA/
+		// +9999#99999999999$SMS*AA/position/
    
 		// String que viene desde el servidor para tomar acción
-		//+9999#99999999999$SMS*1/
+		//+9999#99999999999$SMS*2/35/
 		//9999                -> ID en base de datos
-		//99999999999         -> Celular de 11 dígitos que recibe el mensaje
+		//99999999999         -> Celular de 11 dígitos que recibe el mensaje o que va a ser agregado o eliminado del sistema
 		//SMS                 -> Contenido del mensaje
-		//1                   -> Acción que se toma en el sistema
-   
+		//2                   -> Acción que se toma en el sistema
+        //35                  -> Posición en el SIM
+
+		
 		//0                   -> Activa Relé por lógica inversa
 		//1                   -> Desactiva Relé por lógica inversa
+		//2                   -> Agrega número en el SIM
+		//3                   -> Borra número en el SIM
 		//cada acción debe documentarse acá
 		
-		char msgx[1024];  
+		char msgx[1024];
 		char telx[1024];
 
+		// Extrae ID de la base de datos
 		id             = BuildString.substring(BuildString.indexOf("+")+1,BuildString.indexOf("#"));
-		String tel     = BuildString.substring(BuildString.indexOf("#")+1,BuildString.indexOf("$"));  
+
+		// Extrae número telefónico que recibirá el SMS o número que va a ser agregado o eliminado del sistema
+		String tel     = BuildString.substring(BuildString.indexOf("#")+1,BuildString.indexOf("$"));
+		
+		// Extrae SMS
 		String msg     = BuildString.substring(BuildString.indexOf("$")+1,BuildString.indexOf("*"));
+		
+		// Extrae acción a tomar en el sistema
 		String action  = BuildString.substring(BuildString.indexOf("*")+1,BuildString.indexOf("/"));
+		
+		// Extrae position del SIM que será agregada o eliminada del sitema
+		String add_del     = BuildString.substring((BuildString.indexOf("/") + 1), BuildString.indexOf("/", BuildString.indexOf("/") + 1));
+
 		Serial.println("id :"+id);
 		Serial.println("tel:"+tel);
 		Serial.println("msg:"+msg);
 		Serial.println("action:"+action);
+		Serial.println("add_del:"+add_del);
 		
 		//Formato de mensaje presente en el servidor
 		//+9999#99999999999$SMS*AA/
@@ -792,6 +808,8 @@ if((WiFiMulti.run() == WL_CONNECTED) )
 					digitalWrite(LED_BUILTIN, router);
 					digitalWrite(4, HIGH);
 					break;
+				case 2:
+					Serial.println("Case 2");
 				default:
 				break;
 			}
