@@ -307,7 +307,7 @@ void endOfLineReached()
   {
     if ((lastLine.length() > 0) && (nextValidLineIsCall))
     {
-      //LastLineIsCLIP();
+      LastLineIsCLIP();
     }
 	// Comprueba que se está recibiendo un SMS
     else if (lastLine.startsWith("+CMT:"))
@@ -507,6 +507,70 @@ void clearBuffer()
     delay(1);
   }
 }
+
+
+//**********************************************************
+
+// Función que procesa llamada telefónica
+
+void LastLineIsCLIP()
+{
+  firstComma         = lastLine.indexOf(',');
+  secondComma        = lastLine.indexOf(',', firstComma + 1);
+  thirdComma         = lastLine.indexOf(',', secondComma + 1);
+  forthComma         = lastLine.indexOf(',', thirdComma + 1);
+  fifthComma         = lastLine.indexOf(',', forthComma + 1);
+  PhoneCalling       = lastLine.substring((firstComma - 12), (firstComma - 1));
+  PhoneCallingIndex  = lastLine.substring((forthComma + 2), (fifthComma - 1));
+  j                  = PhoneCallingIndex.toInt();
+  if (PhoneCalling == OldPhoneCalling)
+  {
+    swveces = 1;
+    if ((millis() - xprevious ) > 9000)
+    {
+      swveces   = 0;
+      xprevious = millis();
+    };
+  }
+  else
+  {
+    xprevious       = millis();
+    OldPhoneCalling = PhoneCalling;
+    swveces         = 0;
+  }
+  if (j > 0 & swveces == 0)
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+	// desactiva el relé con lógica inversa
+	digitalWrite(4, HIGH);
+  }
+  if ((WiFiMulti.run() == WL_CONNECTED) & swveces == 0)
+  {
+    HTTPClient http;
+    String xp = "http://estredoyaqueclub.com.ve/arduinoenviacorreo.php?telefono=" + PhoneCalling + "-" + PhoneCallingIndex;
+    http.begin(xp);
+    int httpCode = http.GET();
+    if (httpCode > 0)
+    {
+      if (httpCode == HTTP_CODE_OK)
+      {
+        String BuildStringx = http.getString();
+        Serial.println("[+++++++++++++++++++");
+        Serial.println(BuildStringx);
+        Serial.println("[+++++++++++++++++++");
+      }
+    }
+    else
+    {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+    http.end();
+  }
+  clearBuffer();
+  nextValidLineIsCall = false;
+}
+
+
 
 //**********************************************************
 
@@ -731,7 +795,9 @@ if((WiFiMulti.run() == WL_CONNECTED) )
   // Servidor web local virtual
   // Debe ser uno real conectado a internet
   //xp = "http://192.168.0.164/sandbox/whitelist.txt";
-  xp = "http://192.168.5.107/sandbox/whitelist.txt";
+  //xp = "http://192.168.5.107/sandbox/whitelist.txt";
+  //xp = "http://98cc57cb.ngrok.io/sandbox/whitelist.txt";
+  xp = "http://192.168.5.102/sandbox/whitelist.txt";
   Serial.println(xp);
   HTTPClient http;
   http.begin(xp);
