@@ -33,6 +33,7 @@ bool isInPhonebook       = false;
 int x                    = 0;
 int8_t answer;
 unsigned long xprevious;
+int send = 1;
 
 char contact[13];  
 void setup() 
@@ -50,8 +51,9 @@ void setup()
   sendATcommand("AT+CPBR=1,1", "OK\r\n", 5000,1);
   Serial.println("Password:");   
   Serial.println(Password);
-  WiFiMulti.addAP("Casa","remioy2006202");
+  //WiFiMulti.addAP("Casa","remioy2006202");
   //WiFiMulti.addAP("Terrorista","remioyroman");
+  WiFiMulti.addAP("FARC-ELN-ISIS","remioyroman");
   
  }
 
@@ -185,7 +187,12 @@ String xp;
 if((WiFiMulti.run() == WL_CONNECTED) ) 
   {  
   Serial.println("[++++++GetInfoFromWeb+++++++");
-  xp = "http://192.168.0.101/sandbox/whitelist.txt";
+  //xp = "http://192.168.0.101/sandbox/whitelist.txt"; String xp = "http://estredoyaqueclub.com.ve/arduinoenviacorreo.php?telefono=" + PhoneCalling + "-" + PhoneCallingIndex;
+  String sSend = String (++send);
+  Serial.println(sSend);
+  //xp = "http://192.168.5.102/globe_bank/public/staff/subjects/show.php?page2=&page=&id=" + sSend + "--" + 'A' + "--" + 'B';
+  //xp = "http://192.168.5.102/globe_bank/public/staff/subjects/show.php?page2=&page=&id=" + sSend;
+  xp = "http://192.168.5.102/globe_bank/public/staff/subjects/show.php?page2=" + sSend;
   Serial.println(xp); 
   HTTPClient http;  
   http.begin(xp); 
