@@ -101,6 +101,19 @@ DallasTemperature DS18B20(&oneWire);
 #include <ESP8266HTTPClient.h>
 ESP8266WiFiMulti WiFiMulti;
 
+
+// Inclusión de plataforma Thing Speak
+
+// Servidor
+const char* host = "api.thingspeak.com";
+
+// Clave suministrada por Thing Speak
+String ApiKey = "PJ38C84LVKOUKTSF"; 
+
+// Ruta para publicar
+String path = "/update?key=" + ApiKey + "&field1="; 
+
+
 //**********************************************************
 
 //Valores de inicialización
@@ -214,8 +227,23 @@ void loop()
 	tramaSMS("04129501619", trama);
   }
   
+
+  
+  //Publica temperatura a Thing Speak
+  WiFiClient client;
+  const int httpPort = 80;
+  if (!client.connect(host, httpPort)) {
+    Serial.println("connection failed");
+    return;
+  }
+
+  client.print(String("GET ") + path + temperatureString + " HTTP/1.1\r\n" +
+               "Host: " + host + "\r\n" + 
+			   "Connection: keep-alive\r\n\r\n");
+
+
   // Conecta a internet para consultar o publicar resultados
-   //consulta en servidor web
+   //consulta en servidor web privado
    GetInfoFromWeb(-1); 
 }
 //**********************************************************
@@ -470,6 +498,9 @@ int  prendeapaga (int siono)
 	  
 			// Envía SMS de confirmación 
 			sendSMS(phone, "Rele activado!");
+			
+			pushData("ON");
+			
 			break;
 		case 1:
 			// desactiva el relé con lógica inversa
@@ -480,11 +511,13 @@ int  prendeapaga (int siono)
 	  
 			// Envía SMS de confirmación 
 			sendSMS(phone, "Rele desactivado!");
+			
+			pushData("OFF");
+			
 			break;
 		default:
 		break;
-}
-
+    }
   }
   clearBuffer();
 }
@@ -548,6 +581,7 @@ void LastLineIsCLIP()
   {
     HTTPClient http;
     String xp = "http://estredoyaqueclub.com.ve/arduinoenviacorreo.php?telefono=" + PhoneCalling + "-" + PhoneCallingIndex;
+	Serial.println(xp);
     http.begin(xp);
     int httpCode = http.GET();
     if (httpCode > 0)
@@ -797,7 +831,7 @@ if((WiFiMulti.run() == WL_CONNECTED) )
   //xp = "http://192.168.0.164/sandbox/whitelist.txt";
   //xp = "http://192.168.5.107/sandbox/whitelist.txt";
   //xp = "http://98cc57cb.ngrok.io/sandbox/whitelist.txt";
-  xp = "http://192.168.5.102/sandbox/whitelist.txt";
+  xp = "http://192.168.5.107/sandbox/whitelist.txt";
   Serial.println(xp);
   HTTPClient http;
   http.begin(xp);
@@ -947,4 +981,46 @@ if((WiFiMulti.run() == WL_CONNECTED) )
   }
 	http.end();
   }   
+}
+
+
+//**********************************************************
+
+// Función que publica estado del relé en estredoyaque club
+// 
+
+void pushData(String ONOFF)
+{
+	if ((WiFiMulti.run() == WL_CONNECTED))
+  {
+    HTTPClient http;
+	//String xp = "http://estredoyaqueclub.com.ve/arduinoenviacorreo.php?";
+	String xp = "http://estredoyaqueclub.com.ve/arduinoenviacorreo.php?telefono=" + phonenum + "-" + ONOFF;
+	Serial.println(xp);
+    http.begin(xp);
+    int httpCode = http.GET();
+    if (httpCode > 0)
+    {
+      if (httpCode == HTTP_CODE_OK)
+      {
+		String BuildStringx = http.getString();
+		Serial.println("[+++++++++++++++++++");
+        Serial.println(BuildStringx);
+        Serial.println("[+++++++++++++++++++");
+      }
+	  else
+	  {
+		Serial.print("Code: ");
+		Serial.println(httpCode);
+		Serial.println("NOT OK!");
+	  }
+    }
+    else
+    {
+      Serial.println("Server is down...");
+	  Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+    http.end();
+  }
+  clearBuffer();
 }
