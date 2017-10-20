@@ -91,7 +91,29 @@ char aux_string[100];
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DS18B20(&oneWire);
 
-//Conectiones entre Nodemcu y DS18B20
+
+//Conexiones entre Nodemcu, regulador MP1584, fuente de poder 5VDC con 2A máximos de salida y SIM800L
+
+//Fuente____________________________________________________________MP1584(mover perilla hasta que multimetro muestre 4.2VDC)
+//Positivo--------------------------------------------------------->Positivo
+//Negativo--------------------------------------------------------->Negativo
+
+
+//MP1584____________________________________________________________SIM800L-Coroboard
+//Positivo--------------------------------------------------------->VCC
+//Negativo--------------------------------------------------------->GND
+
+//NODEMCU__________________________________________________________SIM800L-Coroboard
+//TX-------------------------------------------------------------->RX
+//RX-------------------------------------------------------------->TX
+//RST------------------------------------------------------------->RST
+//GND------------------------------------------------------------->GND
+
+// Descargar diagrama de conexión desde acá
+// https://drive.google.com/file/d/0BxtBNyHdFnkkaERIdHEwcFdjNGM/view?usp=sharing
+
+
+//Conexiones entre Nodemcu y DS18B20
 //NodeMCU 3v3 con Vin de DS18B20
 //NodeMCU D1  con Data o Signal de DS18B20
 //NodeMCU GND con GND de DS18B20
@@ -498,7 +520,8 @@ int  prendeapaga (int siono)
 	  
 			// Envía SMS de confirmación 
 			sendSMS(phone, "Rele activado!");
-			
+
+			//Envía a estredo el número de telefono y el estado del relé
 			pushData("ON");
 			
 			break;
@@ -512,6 +535,7 @@ int  prendeapaga (int siono)
 			// Envía SMS de confirmación 
 			sendSMS(phone, "Rele desactivado!");
 			
+			//Envía a estredo el número de telefono y el estado del relé
 			pushData("OFF");
 			
 			break;
@@ -828,9 +852,6 @@ if((WiFiMulti.run() == WL_CONNECTED) )
 
   // Servidor web local virtual
   // Debe ser uno real conectado a internet
-  //xp = "http://192.168.0.164/sandbox/whitelist.txt";
-  //xp = "http://192.168.5.107/sandbox/whitelist.txt";
-  //xp = "http://98cc57cb.ngrok.io/sandbox/whitelist.txt";
   xp = "http://192.168.5.107/sandbox/whitelist.txt";
   Serial.println(xp);
   HTTPClient http;
@@ -847,12 +868,12 @@ if((WiFiMulti.run() == WL_CONNECTED) )
 		// +9999#99999999999$SMS*AA/position/
    
 		// String que viene desde el servidor para tomar acción
-		//+9999#99999999999$SMS*2/35/
-		//9999                -> ID en base de datos
-		//99999999999         -> Celular de 11 dígitos que recibe el mensaje o que va a ser agregado o eliminado del sistema
-		//SMS                 -> Contenido del mensaje
-		//2                   -> Acción que se toma en el sistema
-        //35                  -> Posición en el SIM
+		//+5000#04168262667$Agregado desde Internet*2/35/
+		//5000                                            -> ID en base de datos
+		//04168262667                                     -> Celular de 11 dígitos que recibe el mensaje o que va a ser agregado o eliminado del sistema
+		//Agregado desde Internet                         -> Contenido del mensaje
+		//2                                               -> Acción que se toma en el sistema
+        //35                                              -> Posición en el SIM
 
 		
 		//0                   -> Activa Relé por lógica inversa
