@@ -91,8 +91,8 @@ char aux_string[100];
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature DS18B20(&oneWire);
 
-
-//Conexiones entre Nodemcu, regulador MP1584, fuente de poder 5VDC con 2A máximos de salida y SIM800L
+//Conexiones Físicas
+// La fuente debe ser de >= 5VDC con una corriente mínima de 2 Amperios
 
 //Fuente____________________________________________________________MP1584(mover perilla hasta que multimetro muestre 4.2VDC)
 //Positivo--------------------------------------------------------->Positivo
@@ -103,26 +103,41 @@ DallasTemperature DS18B20(&oneWire);
 //Positivo--------------------------------------------------------->VCC
 //Negativo--------------------------------------------------------->GND
 
+
 //NODEMCU__________________________________________________________SIM800L-Coroboard
 //TX-------------------------------------------------------------->RX
 //RX-------------------------------------------------------------->TX
 //RST------------------------------------------------------------->RST
 //GND------------------------------------------------------------->GND
 
-// Descargar diagrama de conexión desde acá
-// https://drive.google.com/file/d/0BxtBNyHdFnkkaERIdHEwcFdjNGM/view?usp=sharing
-
-
-//Conexiones entre Nodemcu y DS18B20
+//Conexiones entre Nodemcu y sensor de temperatura DS18B20
 //NodeMCU 3v3 con Vin de DS18B20
 //NodeMCU D1  con Data o Signal de DS18B20
 //NodeMCU GND con GND de DS18B20
+
+//Conexiones entre relé externo y NODEMCU (Se necesita otro MP1584 para alimentar el relé)
+
+//Relé ___________________________________________________________MP1584(mover perilla hasta que multimetro muestre 5VDC)
+//VCC------------------------------------------------------------->Positivo
+//GND------------------------------------------------------------->Negativo
+
+//Relé____________________________________________________________NODEMCU
+//SIG------------------------------------------------------------>D2
+
+//MP1584___________________________________________________________NODEMCU
+
+//Positivo-------------------------------------------------------->Vin
+
+//Negativo-------------------------------------------------------->GND
+
+
+// Descargar diagrama desde acá
+//https://drive.google.com/open?id=0BxtBNyHdFnkkUktTRVhWd0tuT2s
 
 // Inclusión de librerías WIFI para ESP8266
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
 ESP8266WiFiMulti WiFiMulti;
-
 
 // Inclusión de plataforma Thing Speak
 
