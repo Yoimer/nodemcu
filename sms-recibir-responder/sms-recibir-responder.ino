@@ -213,7 +213,7 @@ float getTemperature() {
 void loop()
 {
 
-  unsigned long previous = millis();
+  /*unsigned long previous = millis();
 
   do
   {
@@ -233,9 +233,11 @@ void loop()
 		  currentLine[currentLineIndex++] = lastCharRead;
 		}
       }
-  }while((millis() - previous) < 5000);  // espera actividad en puerto serial for 5 segundos
+  }while((millis() - previous) < 5000);  // espera actividad en puerto serial for 5 segundos*/
+  
+  waitSMSorCall();
 
-  // Mide temperatura
+  /*// Mide temperatura
   float temperature = getTemperature();
   temperatureString = "";
   temperatureString = String(getTemperature());
@@ -276,7 +278,7 @@ void loop()
 
   client.print(String("GET ") + path + temperatureString + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" + 
-			   "Connection: keep-alive\r\n\r\n");
+			   "Connection: keep-alive\r\n\r\n");*/
 
 
   // Conecta a internet para consultar o publicar resultados
@@ -867,7 +869,8 @@ if((WiFiMulti.run() == WL_CONNECTED) )
 
   // Servidor web local virtual
   // Debe ser uno real conectado a internet
-  xp = "http://192.168.5.107/sandbox/whitelist.txt";
+  //xp = "http://192.168.5.107/sandbox/whitelist.txt";
+  xp = "http://192.168.0.164/sandbox/whitelist.txt";
   Serial.println(xp);
   HTTPClient http;
   http.begin(xp);
@@ -1016,6 +1019,7 @@ if((WiFiMulti.run() == WL_CONNECTED) )
 	Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
   }
 	http.end();
+	clearBuffer();
   }   
 }
 
@@ -1059,4 +1063,34 @@ void pushData(String ONOFF)
     http.end();
   }
   clearBuffer();
+}
+
+//**********************************************************
+
+// Función que espera SMS o llamada
+
+void waitSMSorCall()
+{
+	
+  unsigned long previous = millis();
+
+  do
+  {
+	  // Si hay salida serial desde el SIM800
+	  if (Serial.available() > 0)
+	  {
+		char lastCharRead = Serial.read();
+		
+		// Lee cada caracter desde la salida serial hasta que \r o \n is encontrado (lo cual denota un fin de línea)
+		if (lastCharRead == '\r' || lastCharRead == '\n')
+		{
+		  endOfLineReached();
+		}
+
+		else
+		{
+		  currentLine[currentLineIndex++] = lastCharRead;
+		}
+      }
+  }while((millis() - previous) < 10000);  // espera actividad en puerto serial for 5 segundos
 }
