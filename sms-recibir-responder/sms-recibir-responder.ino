@@ -188,8 +188,8 @@ void setup() {
   Serial.println(Password);
   
   // Conecta con router Wifi
-  //WiFiMulti.addAP("Casa","remioy2006202");
-  WiFiMulti.addAP("FARC-ELN-ISIS","remioyroman");
+  WiFiMulti.addAP("Casa","remioy2006202");
+  //WiFiMulti.addAP("FARC-ELN-ISIS","remioyroman");
 }
 
 //**********************************************************
@@ -213,78 +213,22 @@ float getTemperature() {
 void loop()
 {
 
-  /*unsigned long previous = millis();
-
-  do
-  {
-	  // Si hay salida serial desde el SIM800
-	  if (Serial.available() > 0)
-	  {
-		char lastCharRead = Serial.read();
-		
-		// Lee cada caracter desde la salida serial hasta que \r o \n is encontrado (lo cual denota un fin de línea)
-		if (lastCharRead == '\r' || lastCharRead == '\n')
-		{
-		  endOfLineReached();
-		}
-
-		else
-		{
-		  currentLine[currentLineIndex++] = lastCharRead;
-		}
-      }
-  }while((millis() - previous) < 5000);  // espera actividad en puerto serial for 5 segundos*/
-  
+  // Espera SMS o llamada
   waitSMSorCall();
-
-  /*// Mide temperatura
-  float temperature = getTemperature();
-  temperatureString = "";
-  temperatureString = String(getTemperature());
-  // imprime en consola el valor de temperatura
-  Serial.println(temperatureString);
   
-  // envía SMS cuando la temperatura sobre pasa los umbrales
-  // cada 5 segundos a un número telefónico predefinido
-  if ((temperature >= 28.50) && (temperature < 31.50))
-  {
-	trama = "";
-	trama = "Alerta, la temperatura ha alcanzado el valor de: " + temperatureString + " grados Centigrados";
-	tramaSMS("04129501619", trama);
-  }
-  // apaga el equipo hasta que la temperatura alcance
-  // un valor por debajo de 31.50
-  // si se envía un SMS con el comando de encendido
-  // pero la temperatura es mayor a 31.50
-  // el comando no va a sobremandar el sistema
-  else if (temperature >= 31.50)
-  {
-	trama = "";
-	trama = "El equipo se ha apagado debido a que la temperatura alcanzo el valor de: " + temperatureString + " grados Centigrados";
-    // desactiva el relé con lógica inversa
-	digitalWrite(4, HIGH);
-	tramaSMS("04129501619", trama);
-  }
-  
-
-  
-  //Publica temperatura a Thing Speak
-  WiFiClient client;
-  const int httpPort = 80;
-  if (!client.connect(host, httpPort)) {
-    Serial.println("connection failed");
-    return;
-  }
-
-  client.print(String("GET ") + path + temperatureString + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" + 
-			   "Connection: keep-alive\r\n\r\n");*/
-
+  // Mide Temperatura
+  // quitar comentario en la función si y solo si el sensor DS18B20 está conectado en D1
+  // si se llama a esta función sin tener el dispositivo conectado; el sistema entra en un bucle infinito
+  // buscando obtener la temperatura.
+  //measureTemperature();
 
   // Conecta a internet para consultar o publicar resultados
-   //consulta en servidor web privado
-   GetInfoFromWeb(-1); 
+  //consulta en servidor web privado
+  GetInfoFromWeb(-1);
+  
 }
+
+
 //**********************************************************
 
 // Función que comprueba conexión física con el SIM800L
@@ -1092,5 +1036,61 @@ void waitSMSorCall()
 		  currentLine[currentLineIndex++] = lastCharRead;
 		}
       }
-  }while((millis() - previous) < 10000);  // espera actividad en puerto serial for 5 segundos
+  }while((millis() - previous) < 10000);  // espera actividad en puerto serial for 10 segundos
+}
+
+
+//**********************************************************
+
+// Función que mide temperatura
+
+void measureTemperature()
+{
+  Serial.println("Midiendo Temperatura");
+  // Obtiene temperatura
+  float temperature = getTemperature();
+  temperatureString = "";
+  temperatureString = String(getTemperature());
+  
+  // imprime en consola el valor de temperatura
+  Serial.println(temperatureString);
+  
+  // envía SMS cuando la temperatura sobre pasa los umbrales
+  // cada 10 segundos a un número telefónico master
+  if ((temperature >= 28.50) && (temperature < 31.50))
+  {
+	trama = "";
+	trama = "Alerta, la temperatura ha alcanzado el valor de: " + temperatureString + " grados Centigrados";
+	// cambiar número master
+	tramaSMS("04129501619", trama);
+  }
+  
+  // apaga el equipo hasta que la temperatura alcance
+  // un valor por debajo de 31.50
+  // si se envía un SMS con el comando de encendido
+  // pero la temperatura es mayor a 31.50
+  // el comando no va a sobremandar el sistema
+  else if (temperature >= 31.50)
+  {
+	trama = "";
+	trama = "El equipo se ha apagado debido a que la temperatura alcanzo el valor de: " + temperatureString + " grados Centigrados";
+    
+	// desactiva el relé con lógica inversa
+	digitalWrite(4, HIGH);
+	// cambiar número master
+	tramaSMS("04129501619", trama);
+  }
+  
+  //Publica temperatura a Thing Speak
+  WiFiClient client;
+  const int httpPort = 80;
+  if (!client.connect(host, httpPort)) {
+    Serial.println("connection failed");
+    return;
+  }
+
+  client.print(String("GET ") + path + temperatureString + " HTTP/1.1\r\n" +
+               "Host: " + host + "\r\n" + 
+			   "Connection: keep-alive\r\n\r\n");
+
 }
