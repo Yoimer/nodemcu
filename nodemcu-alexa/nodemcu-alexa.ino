@@ -58,7 +58,8 @@ void loop() {
   }
   
   //String url = "/repos/esp8266/Arduino/commits/master/status";
-  String url = "/test.php?sw=ON";
+  //String url = "/reference/en/language/functions/math/constrain";
+  String url = "/test.php?sw=ONorOFF";
   Serial.print("requesting URL: ");
   Serial.println(url);
 
@@ -78,6 +79,14 @@ void loop() {
     }
   }
   
+  //String line = client.readStringUntil('\n');
+  String line = client.readString();
+  Serial.println("reply was:");
+  Serial.println("==========");
+  Serial.println(line);
+  Serial.println("==========");
+  Serial.println("closing connection");
+
   delay(10000);
 
 }
