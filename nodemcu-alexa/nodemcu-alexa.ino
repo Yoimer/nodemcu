@@ -17,12 +17,12 @@
 const char* ssid = "Casa";
 const char* password = "remioy2006202";
 
-const char* host = "iot-php.000webhostapp.com";
+const char* host = "glacial-dawn-27385.herokuapp.com";
 const int httpsPort = 443;
 
 // Use web browser to view and copy
 // SHA1 fingerprint of the certificate
-const char* fingerprint = "70:C8:BC:B5:F4:1A:24:5E:BC:B2:E3:86:BE:BF:E0:16:9C:48:FC:0B";
+const char* fingerprint = "08:3B:71:72:02:43:6E:CA:ED:42:86:93:BA:7E:DF:81:C4:BC:62:30";
 
 void setup() {
   Serial.begin(115200);
