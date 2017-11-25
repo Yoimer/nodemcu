@@ -57,6 +57,28 @@ void loop() {
     Serial.println("certificate doesn't match");
   }
   
+  //String url = "/repos/esp8266/Arduino/commits/master/status";
+  String url = "/test.php?sw=ON";
+  Serial.print("requesting URL: ");
+  Serial.println(url);
+
+  client.print(String("GET ") + url + " HTTP/1.1\r\n" +
+               "Host: " + host + "\r\n" +
+               "User-Agent: BuildFailureDetectorESP8266\r\n" +
+               "Connection: close\r\n\r\n");
+			   
+  Serial.println("request sent");
+  while (client.connected()) {
+	  // show headers from web site
+    String line = client.readStringUntil('\n');
+	Serial.println(line);
+    if (line == "\r") {
+      //Serial.println("line is: ");
+	  Serial.println("headers received");
+      break;
+    }
+  }
+  
   delay(10000);
 
 }
