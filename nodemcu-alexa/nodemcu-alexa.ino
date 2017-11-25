@@ -17,12 +17,12 @@
 const char* ssid = "Casa";
 const char* password = "remioy2006202";
 
-const char* host = "glacial-dawn-27385.herokuapp.com";
+const char* host = "cdc3f8f3.ngrok.io";
 const int httpsPort = 443;
 
 // Use web browser to view and copy
 // SHA1 fingerprint of the certificate
-const char* fingerprint = "08:3B:71:72:02:43:6E:CA:ED:42:86:93:BA:7E:DF:81:C4:BC:62:30";
+const char* fingerprint = "37:59:DB:AC:23:4D:53:20:FF:5E:93:F2:A5:B9:F9:50:42:9E:CC:54";
 
 void setup() {
   Serial.begin(115200);
@@ -59,7 +59,7 @@ void loop() {
   
   //String url = "/repos/esp8266/Arduino/commits/master/status";
   //String url = "/reference/en/language/functions/math/constrain";
-  String url = "/test.php?sw=ONorOFF";
+  String url = "/";
   Serial.print("requesting URL: ");
   Serial.println(url);
 
