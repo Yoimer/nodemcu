@@ -38,6 +38,9 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+  
+  // Initialize the LED_BUILTIN pin as an output
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
@@ -86,6 +89,16 @@ void loop() {
   Serial.println(line);
   Serial.println("==========");
   Serial.println("closing connection");
+  
+      // Get ON from Alexa on flask Python server using ngrok
+  if (line.startsWith("ON")) {
+	  // Turn the LED on by making the voltage HIGH
+	  digitalWrite(LED_BUILTIN, LOW);
+      // Get OFF from Alexa on flask Python server using ngrok
+  }else if (line.startsWith("OFF")) {
+	  // Turn the LED off by making the voltage HIGH
+	  digitalWrite(LED_BUILTIN, HIGH);
+  }
 
   delay(10000);
 
