@@ -17,7 +17,7 @@
 const char* ssid = "Casa";
 const char* password = "remioy2006202";
 
-const char* host = "cdc3f8f3.ngrok.io";
+const char* host = "7d09e827.ngrok.io";
 const int httpsPort = 443;
 
 // Use web browser to view and copy
@@ -71,10 +71,10 @@ void loop() {
   while (client.connected()) {
 	  // show headers from web site
     String line = client.readStringUntil('\n');
-	Serial.println(line);
+	//Serial.println(line);
     if (line == "\r") {
       //Serial.println("line is: ");
-	  Serial.println("headers received");
+	  //Serial.println("headers received");
       break;
     }
   }
