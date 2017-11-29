@@ -194,36 +194,55 @@ for (int i = 0; i < 10; i++)
 //int GetInfoFromWeb (int router)
 int GetInfoFromWeb ()
 {
-delay(10000); 
-String xp;
-if((WiFiMulti.run() == WL_CONNECTED) ) 
-  {  
-  Serial.println("[++++++GetInfoFromWeb+++++++");
-  xp = "http://castillolk.com.ve/proyectos/sms/alexa.php";
-  /*if (router == 1)
-     {
-   //xp="http://correosmasivos-com-ve.alpha.ioticos.com/readmensajetexto.php?sw=2&id="+id;
-   xp="http://castillolk.com.ve/proyectos/sms/readmensajetexto.php?sw=2&id="+id;
-   }*/
-   
-  Serial.println(xp); 
-  HTTPClient http;  
-  http.begin(xp); 
-  int httpCode = http.GET();
-  if(httpCode > 0) 
-  {
-  if(httpCode == HTTP_CODE_OK) 
-    {
-    BuildString = http.getString();
-	Serial.println(BuildString);
-    }
-  } 
-  else 
-  {
-  Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-  }
-  http.end();
-  }   
+	delay(10000); 
+	String xp;
+	if((WiFiMulti.run() == WL_CONNECTED) ) 
+	{  
+		Serial.println("[++++++GetInfoFromWeb+++++++");
+		xp = "http://castillolk.com.ve/proyectos/sms/alexa.php";
+		Serial.println(xp); 
+		HTTPClient http;  
+		http.begin(xp); 
+		int httpCode = http.GET();
+		if(httpCode > 0) 
+		{
+			if(httpCode == HTTP_CODE_OK) 
+			{
+				BuildString = http.getString();
+				Serial.println(BuildString);
+				if (BuildString.endsWith("ON"))
+				{
+					//LED ON
+					// Update db
+					xp = "http://castillolk.com.ve/proyectos/sms/alexa.php?sw=9";
+					http.begin(xp);
+					Serial.println(xp);
+					httpCode = http.GET();
+					Serial.println(httpCode);
+					Serial.println("LED ON");
+				}
+				else if (BuildString.endsWith("OFF"))
+				{
+					//LED OFF
+					// Update db
+					xp = "http://castillolk.com.ve/proyectos/sms/alexa.php?sw=9";
+					http.begin(xp);
+					Serial.println(xp);
+					httpCode = http.GET();
+					Serial.println(httpCode);
+					Serial.println("LED OFF");
+				}
+				else if (BuildString.endsWith("OK"))
+				{
+					//Do nothing
+					Serial.println("Waiting any change from ALEXA");
+				}
+			} 
+			else 
+			{
+					Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+			}
+			http.end();
+		}   
+	}
 }
-
-
