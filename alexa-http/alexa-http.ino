@@ -212,7 +212,8 @@ int GetInfoFromWeb ()
 				Serial.println(BuildString);
 				if (BuildString.endsWith("ON"))
 				{
-					//LED ON
+					// Turn the LED on (Note that LOW is the voltage level
+					digitalWrite(LED_BUILTIN, LOW);
 					// Update db
 					xp = "http://castillolk.com.ve/proyectos/sms/alexa.php?sw=9";
 					http.begin(xp);
@@ -223,7 +224,8 @@ int GetInfoFromWeb ()
 				}
 				else if (BuildString.endsWith("OFF"))
 				{
-					//LED OFF
+					// Turn the LED off by making the voltage HIGH
+					digitalWrite(LED_BUILTIN, HIGH);  
 					// Update db
 					xp = "http://castillolk.com.ve/proyectos/sms/alexa.php?sw=9";
 					http.begin(xp);
