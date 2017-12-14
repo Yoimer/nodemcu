@@ -33,6 +33,7 @@ bool isInPhonebook       = false;
 int x                    = 0;
 int8_t answer;
 unsigned long xprevious;
+String xp                = "";
 
 char contact[13];  
 void setup() 
@@ -40,42 +41,16 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
   Serial.println("Starting...");
-  /*power_on();
-  delay(3000);
-  Serial.println("Connecting to the network...");
-  while ( (sendATcommand("AT+CREG?", "+CREG: 0,1", 5000,0) ||
-           sendATcommand("AT+CREG?", "+CREG: 0,5", 5000,0)) == 0 );
-  sendATcommand("AT+CMGF=1", "OK", 5000,0);
-  sendATcommand("AT+CNMI=1,2,0,0,0", "OK", 5000,0);
-  sendATcommand("AT+CPBR=1,1", "OK\r\n", 5000,1);
-  Serial.println("Password:");   
-  Serial.println(Password);*/
   WiFiMulti.addAP("Casa","remioy2006202");
+  
+  // tell alexa system is ON
+  checkHTTP("http://castillolk.com.ve/proyectos/sms/alexa.php?sw=7");
   
  }
 
 /////////////////////////////////////////////////////////////////
 void loop()
 {
-  /*char msgx[1024];  
-  char telx[1024];
-    GetInfoFromWeb(0); 
-  // +ID#XXXXXXXXXX$MENSAJE
-  // +9999#9999999999$
-    id         = BuildString.substring(BuildString.indexOf("+")+1,BuildString.indexOf("#"));
-    String tel = BuildString.substring(BuildString.indexOf("#")+1,BuildString.indexOf("$"));  
-  String msg = BuildString.substring(BuildString.indexOf("$")+1); 
-  Serial.println("id :"+id);
-  Serial.println("tel:"+tel);
-  Serial.println("msg:"+msg);
-  
-  if ( tel   != "99999999999")
-     {  
-       strcpy(telx, tel.c_str());
-       strcpy(msgx, msg.c_str());
-       sendSMS  (telx,msgx) ;
-       GetInfoFromWeb(1); 
-     } */
   GetInfoFromWeb();
 }
 
@@ -191,14 +166,15 @@ for (int i = 0; i < 10; i++)
     }
 }
 ////////////////////////////////////////////////////////////////////
-//int GetInfoFromWeb (int router)
 int GetInfoFromWeb ()
 {
 	delay(10000); 
-	String xp;
 	if((WiFiMulti.run() == WL_CONNECTED) ) 
 	{  
-		Serial.println("[++++++GetInfoFromWeb+++++++");
+		checkHTTP("http://castillolk.com.ve/proyectos/sms/alexa.php");
+		
+		
+		/*Serial.println("[++++++GetInfoFromWeb+++++++");
 		xp = "http://castillolk.com.ve/proyectos/sms/alexa.php";
 		Serial.println(xp); 
 		HTTPClient http;  
@@ -245,6 +221,30 @@ int GetInfoFromWeb ()
 					Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
 			}
 			http.end();
-		}   
+		}*/   
 	}
+}
+
+////////////////////////////////////////////////////////////////////
+int checkHTTP(String website)
+{
+	Serial.println("[++++++GetInfoFromWeb+++++++");
+	Serial.println(website); 
+	HTTPClient http;  
+	http.begin(website); 
+	int httpCode = http.GET();
+	if ((httpCode > 0) && (httpCode == HTTP_CODE_OK))
+	{
+		Serial.println("Connected");
+		BuildString = http.getString();
+		Serial.println(BuildString);
+	}
+	else
+	{
+		Serial.println("Not connected");
+	}
+
+	answer = 1;
+
+	return answer;
 }
