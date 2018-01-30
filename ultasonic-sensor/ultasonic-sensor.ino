@@ -53,7 +53,7 @@ void setup()
 
     // D2 como salida. D2 es GPIO-4
     ////pinMode(4, OUTPUT);
-    
+
     pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
     pinMode(echoPin, INPUT); // Sets the echoPin as an Input
 
@@ -218,7 +218,7 @@ void endOfLineReached()
   {
     if ((lastLine.length() > 0) && (nextValidLineIsCall))        // Rejects any empty line
     {
-      //LastLineIsCLIP();
+      LastLineIsCLIP();
     }
     // Comprueba que se está recibiendo un SMS
     else if (lastLine.startsWith("+CMT:"))                          // New incoming SMS
@@ -555,3 +555,55 @@ void tramaSMS(String numbertoSend, String messagetoSend)
     // Envía SMS de confirmación 
     sendSMS(phone, message);
 }
+
+//**********************************************************
+
+// Función que procesa llamada telefónica
+
+void LastLineIsCLIP()
+{
+  firstComma         = lastLine.indexOf(',');
+  secondComma        = lastLine.indexOf(',', firstComma + 1);
+  thirdComma         = lastLine.indexOf(',', secondComma + 1);
+  forthComma         = lastLine.indexOf(',', thirdComma + 1);
+  fifthComma         = lastLine.indexOf(',', forthComma + 1);
+  PhoneCalling       = lastLine.substring((firstComma - 12), (firstComma - 1));
+  PhoneCallingIndex  = lastLine.substring((forthComma + 2), (fifthComma - 1));
+  j                  = PhoneCallingIndex.toInt();
+  Serial.println(PhoneCalling);
+  if (PhoneCalling == OldPhoneCalling)
+  {
+    swveces = 1;
+    if ((millis() - xprevious ) > 9000)
+    {
+      swveces   = 0;
+      xprevious = millis();
+    };
+  }
+  else
+  {
+    xprevious       = millis();
+    OldPhoneCalling = PhoneCalling;
+    swveces         = 0;
+  }
+  if (j > 0 & swveces == 0)
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+    // desactiva el relé con lógica inversa
+    ////digitalWrite(4, HIGH);
+
+     // Copia número en array phone
+    PhoneCalling.toCharArray(phone, 21);
+
+    // Envía SMS de confirmación 
+    sendSMS(phone, "Apagado por llamada");
+
+  }
+  clearBuffer();
+  nextValidLineIsCall = false;
+}
+
+
+
+//**********************************************************
+
