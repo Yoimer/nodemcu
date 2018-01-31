@@ -1,3 +1,51 @@
+/* -------------------------------------------------------------conexiones----------------------------------------------- */
+
+
+/*fuente externa de 12VDC/3A a MP1584
+
+MP1584
+ ----------------------
+|-in             out - |
+|    -------->         |
+|+in             out + |
+ ----------------------
+
+-in (negativo de fuente externa)
++in (positivo de fuente externa)
+
+// mover perilla hasta 3.3VDC
+-out (negativo de salida)
++ out (positivo de salida)
+
+*/
+
+
+/* MP1584 - SIM800L CoreBoard
+
+   -out----->gnd
+   +out----->vcc
+*/
+
+
+/* SIM800L - Nodemcu
+
+   rx------->tx
+   tx------->rx
+   gnd------>cualquier gnd (otra tierra disponible debe ir conectada a la salida negativa del MP1584)
+/*
+
+
+/* HC-SR04 - Nodemcu
+   
+   vcc------->vin
+   gnd------->cualquier gnd
+   trigg----->D4
+   echo------>D3
+/*
+
+/**/
+
+
 #define TIMEOUT 30000
 
 // defines pins numbers
@@ -43,7 +91,7 @@ int f                                     = -1;
 int r                                     = 0;
 bool isInPhonebook = false;
 char contact[13];
-char phone[21]; // a global buffer to hold phone number
+char phone[21];
 char message[100];
 int alarma = -1;
 
@@ -58,10 +106,14 @@ void setup()
     // D2 como salida. D2 es GPIO-4
     ////pinMode(4, OUTPUT);
 
-    pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
-    pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+    // set trigPin como salida
+    pinMode(trigPin, OUTPUT); 
 
-    Serial.begin(115200); // Starts the serial communication
+    // sets echoPin como entrada
+    pinMode(echoPin, INPUT);
+
+    // inicia comunicación serial
+    Serial.begin(115200);
     Serial.println("Starting...");
 
     // Comprueba conexión física con el SIM800L
@@ -82,11 +134,14 @@ void setup()
 
     // Lee primer contacto guardado previamente en el SIMcard
     // para ser ultilizado como contraseña en los SMS
-    sendATcommand("AT+CPBR=1,1", "OK\r\n", 5000, 1);
+    sendATcommand("AT+CPBR=1,1", "OK", 5000, 1);
 
-    Serial.println("Password:");
     // Imprime la contraseña en la consola
+    Serial.println("Password:");
     Serial.println(Password);
+
+    // configura modulo para recibir llamadas
+    sendATcommand("AT+CLIP=1", "OK", 5000, 0);
 }
 
 void loop()
@@ -110,11 +165,12 @@ void loop()
                 currentLine[currentLineIndex++] = lastCharRead;
             }
         }
-    }while((millis() - previous) < 150);  //waits for serial activity for 150 miliseconds
+    }while((millis() - previous) < 150);  // espera actividad serial por 150 milisegundos
 
     // estudia condición de movimiento y alarma
     if ((distance <= 30) && (alarma == 1))
     {
+        // activa relé (logica inversa en nodemcu)
         digitalWrite(LED_BUILTIN, LOW);
 
         // Copia número en array phone
@@ -135,24 +191,23 @@ void loop()
 ////////////////////////////////////////////////////
 void CheckUltrasoundSensor()
 {
-    // Clears the trigPin
+    // limpia trigPin
     digitalWrite(trigPin, LOW);
     delayMicroseconds(2);
 
-    // Sets the trigPin on HIGH state for 10 micro seconds
+    // set trigPIN en HIGH por 10 microsegundos
     digitalWrite(trigPin, HIGH);
     delayMicroseconds(10);
     digitalWrite(trigPin, LOW);
 
-    // Reads the echoPin, returns the sound wave travel time in microseconds
+    // lee echoPin, retorna el viaje en el tiempo de la onda de sonido en microsegundos
     duration = pulseIn(echoPin, HIGH);
 
-    // Calculating the distance
+    // calcula la distancia
     distance= (duration*0.034)/(2);
 
-    // Prints the distance on the Serial Monitor
+    // imprime distancia en consola
     Serial.print("Distance is: ");
-    ////Serial.println(distance);
     Serial.println(distance, DEC);
 }
 
@@ -177,6 +232,9 @@ void power_on()
 // Función que envía comandos AT al SIM800L
 // Cuando int xpassword tiene el valor de 0 no consulta contraseña
 // Cuando int xpassword tiene el valor de 1 consulta contraseña
+// la contraseña es los 4 digitos que se guardaron previamente
+// en la posicion 1 en el sim
+// utilizando el programa de arranque llamado programa cero
 
 int8_t sendATcommand(char* ATcommand, char* expected_answer, unsigned int timeout, int xpassword)
 {
@@ -234,19 +292,19 @@ void endOfLineReached()
   lastLine = String(currentLine);
 
   // Comprueba que se está recibiendo una llamada
-  if (lastLine.startsWith("RING"))                                   // New incoming call
+  if (lastLine.startsWith("RING"))
   {
     Serial.println(lastLine);
     nextValidLineIsCall = true;
   }
   else
   {
-    if ((lastLine.length() > 0) && (nextValidLineIsCall))        // Rejects any empty line
+    if ((lastLine.length() > 0) && (nextValidLineIsCall))
     {
       LastLineIsCLIP();
     }
     // Comprueba que se está recibiendo un SMS
-    else if (lastLine.startsWith("+CMT:"))                          // New incoming SMS
+    else if (lastLine.startsWith("+CMT:"))
     {
       // Imprime SMS recibido completo
       // Incluye el número que envía el mensaje
@@ -358,10 +416,11 @@ void LastLineIsCMT()
       Serial.println(DEC, alarma);
 
     }
-    // SMS para activar alarma
+    // SMS para activar forzar relé
     else if (lastLine.indexOf("000") >= 0)
     {
 
+      // forza relé(led) en nodemcu
       digitalWrite(LED_BUILTIN, LOW);
 
       // Copia número en array phone
