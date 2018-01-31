@@ -45,11 +45,15 @@ bool isInPhonebook = false;
 char contact[13];
 char phone[21]; // a global buffer to hold phone number
 char message[100];
-
+int alarma = -1;
 
 void setup()
 {
+    // Led indicador de relé físico
     pinMode(LED_BUILTIN, OUTPUT);
+
+    // Led indicador de relé físico apagado(lógica inversa)
+    digitalWrite(LED_BUILTIN, HIGH);
 
     // D2 como salida. D2 es GPIO-4
     ////pinMode(4, OUTPUT);
@@ -316,6 +320,39 @@ void LastLineIsCMT()
     else if (lastLine.indexOf("DEL") >= 0)
     {
       DelAdd(2);
+    }
+    // SMS para activar alarma
+    else if (lastLine.indexOf("999") >= 0)
+    {
+
+      // Copia número en array phone
+      phonenum.toCharArray(phone, 21);
+
+      // Envía SMS de confirmación 
+      sendSMS(phone, "Alarma Activada");
+
+      //activa alarma
+      alarma = 1;
+      Serial.print("alarma");
+      Serial.println(DEC, alarma);
+
+    }
+    // SMS para activar alarma
+    else if (lastLine.indexOf("000") >= 0)
+    {
+
+      // Copia número en array phone
+      phonenum.toCharArray(phone, 21);
+
+      // Envía SMS de confirmación 
+      sendSMS(phone, "RELE FORZADO");
+
+      digitalWrite(LED_BUILTIN, LOW);
+
+      // limpia la alarma
+      alarma = 0;
+      Serial.print("alarma");
+      Serial.println(DEC, alarma);
     }
     else
     {
@@ -592,18 +629,17 @@ void LastLineIsCLIP()
     // desactiva el relé con lógica inversa
     ////digitalWrite(4, HIGH);
 
+    alarma = 0;
+
      // Copia número en array phone
     PhoneCalling.toCharArray(phone, 21);
 
     // Envía SMS de confirmación 
-    sendSMS(phone, "Apagado por llamada");
+    sendSMS(phone, "Alarma desactivada por llamada");
 
   }
   clearBuffer();
   nextValidLineIsCall = false;
 }
 
-
-
 //**********************************************************
-
