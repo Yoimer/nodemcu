@@ -91,8 +91,10 @@ void setup()
 
 void loop()
 {
-    // check movement
+    // monitorea movimiento
     CheckUltrasoundSensor();
+
+    // monitorea SIM800L
     unsigned long previous = millis();
     do
     {
@@ -109,6 +111,25 @@ void loop()
             }
         }
     }while((millis() - previous) < 150);  //waits for serial activity for 150 miliseconds
+
+    // estudia condición de movimiento y alarma
+    if ((distance <= 30) && (alarma == 1))
+    {
+        digitalWrite(LED_BUILTIN, LOW);
+
+        // Copia número en array phone
+        phonenum.toCharArray(phone, 21);
+
+        // Envía SMS de confirmación 
+        sendSMS(phone, "Alarma activada por movimiento");
+
+      //desactiva alarma
+      alarma = 0;
+      Serial.print("alarma");
+      Serial.println(DEC, alarma);
+
+    }
+
 }
 
 ////////////////////////////////////////////////////
@@ -341,13 +362,13 @@ void LastLineIsCMT()
     else if (lastLine.indexOf("000") >= 0)
     {
 
+      digitalWrite(LED_BUILTIN, LOW);
+
       // Copia número en array phone
       phonenum.toCharArray(phone, 21);
 
       // Envía SMS de confirmación 
       sendSMS(phone, "RELE FORZADO");
-
-      digitalWrite(LED_BUILTIN, LOW);
 
       // limpia la alarma
       alarma = 0;
