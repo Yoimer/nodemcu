@@ -43,6 +43,15 @@ MP1584
    echo------>D3
 /*
 
+
+/* RELÊ(5VDC) - Nodemcu
+
+   sig-------->D2
+   vcc-------->vin
+   gnd-------->cualquier gnd
+
+*/
+
 /**/
 
 
@@ -104,7 +113,7 @@ void setup()
     digitalWrite(LED_BUILTIN, HIGH);
 
     // D2 como salida. D2 es GPIO-4
-    ////pinMode(4, OUTPUT);
+    pinMode(4, OUTPUT);
 
     // set trigPin como salida
     pinMode(trigPin, OUTPUT); 
@@ -391,6 +400,9 @@ void LastLineIsCMT()
       // forza relé(led) en nodemcu
       digitalWrite(LED_BUILTIN, LOW);
 
+      // enciende relé físico en D2
+      digitalWrite(4, HIGH);
+
       // Copia número en array phone
       phonenum.toCharArray(phone, 21);
 
@@ -674,8 +686,9 @@ void LastLineIsCLIP()
   if (j > 0 & swveces == 0)
   {
     digitalWrite(LED_BUILTIN, HIGH);
-    // desactiva el relé con lógica inversa
-    ////digitalWrite(4, HIGH);
+
+    // desactiva el relé físico en D2
+    digitalWrite(4, LOW);
 
     alarma = 0;
 
@@ -726,6 +739,9 @@ void CheckDistance()
     {
         // activa relé (logica inversa en nodemcu)
         digitalWrite(LED_BUILTIN, LOW);
+
+        // enciende relé físico en D2
+        digitalWrite(4, HIGH);
 
         // Copia número en array phone
         phonenum.toCharArray(phone, 21);
