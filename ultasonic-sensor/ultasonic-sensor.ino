@@ -67,7 +67,7 @@ MP1584
   la cual consiste en 4 números. Al mismo tiempo el número telefónico
   que envía el mensaje queda registrado en la posición 2 del sim card.
   El enlace del programa cero se puede encontrar acá:
-  (copiar enlace github del programa cero acá)
+  https://raw.githubusercontent.com/Yoimer/nodemcu/024b93692461c7eb7a8ec7e6d31e14319c261d68/programa-cero/programa-cero.ino
   el formato de mensaje es el siguiente:
 
   KEY,4 números que se desean guardar,
