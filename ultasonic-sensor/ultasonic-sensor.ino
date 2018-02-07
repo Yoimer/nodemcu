@@ -52,6 +52,51 @@ MP1584
 
 */
 
+/*
+  formatos de mensajes
+
+  activar alarma (bandera de programación)
+  999,4 números grabados en la posición 1 del simcard con el programa cero,
+  ejemplo 999,7777,
+
+  forzar relé físico
+  000,4 números grabados en la posición 1 del simcard con el programa cero,
+  ejemplo 000,7777,
+
+  el programa cero es aquel que permite ingresar la clave en la posicion 1 del simcard
+  la cual consiste en 4 números. Al mismo tiempo el número telefónico
+  que envía el mensaje queda registrado en la posición 2 del sim card.
+  El enlace del programa cero se puede encontrar acá:
+  (copiar enlace github del programa cero acá)
+  el formato de mensaje es el siguiente:
+
+  KEY,4 números que se desean guardar,
+  por ejemplo el número 04168262668 envía el SMS KEY,7777,
+  en la posición 1 del sim se guarda la clave 7777
+  en la posición 2 el número 04168262668.
+
+  solo los números guardados desde la posición 2 hasta la 5
+  pueden agregar o borrar usuarios al systema (whitelist)
+  para agregar usuarios usar el siguiente formato de sms
+  ADD,posición a guardar,número telefónico,
+
+  ejemplo ADD,6,04168262668,
+  el número 04168262668 queda guardado en la posición 6 del simcard
+  el nuevo ingreso recibirá un sms de bienvenida
+  el número que realizó el ingreso recibirá un sms de confirmación.
+
+  para borrar usuarios ingresar el siguiente formato de sms
+  DEL,posición del sim a borrar,
+  por ejemplo
+  DEL,36, borra el número guardado en la posición 36 del simcard
+
+  se debe tener guardado en una base de datos u hoja en excel
+  los números y posiciones(nombres) asociadas al sistema
+  cuando se envía el SMS ADD,6,04168262668,
+  el nombre de ese contacto es 6, el cual es la posición donde fue guardado en el sim
+
+*/
+
 /**/
 
 
