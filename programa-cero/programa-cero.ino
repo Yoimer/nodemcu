@@ -8,6 +8,17 @@
   pueden tomar acciones de control.
   Cualquier SMS distinto a los strings predefinidos
   no serán tomados en cuenta por el sistema
+
+
+  NOTA!!! (al ejecutar este programa se borraran todos los contactos guardados previamente)
+  
+  formato del SMS:
+  KEY,4 números que se desean guardar,
+  por ejemplo el número 04168262668 envía el SMS KEY,7777,
+  en la posición 1 del sim se guarda la clave 7777
+  en la posición 2 el número 04168262668.
+
+
 */
 
 int8_t answer;
@@ -80,18 +91,7 @@ void setup() {
 // Programa Principal
 void loop()
 {
-  if (Serial.available() > 0)
-  {
-    char lastCharRead = Serial.read();
-    if (lastCharRead == '\r' || lastCharRead == '\n')
-    {
-      endOfLineReached();
-    }
-    else
-    {
-      currentLine[currentLineIndex++] = lastCharRead;
-    }
-  }
+  CheckSIM800L();
 }
 
 //**********************************************************
@@ -354,6 +354,7 @@ void tramaSMS(String numbertoSend, String messagetoSend)
 
 //**********************************************************
 
+// Funcion qne envia SMS
 
 int sendSMS(char *phone_number, char *sms_text)
 {
@@ -388,6 +389,22 @@ int sendSMS(char *phone_number, char *sms_text)
   return answer;
 }
 
+//**********************************************************
 
+// Funcion qne chequea SIM800L
 
-
+void CheckSIM800L()
+{
+  if (Serial.available() > 0)
+  {
+    char lastCharRead = Serial.read();
+    if (lastCharRead == '\r' || lastCharRead == '\n')
+    {
+      endOfLineReached();
+    }
+    else
+    {
+      currentLine[currentLineIndex++] = lastCharRead;
+    }
+  }
+}
