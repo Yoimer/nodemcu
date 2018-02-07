@@ -67,7 +67,7 @@ MP1584
   la cual consiste en 4 números. Al mismo tiempo el número telefónico
   que envía el mensaje queda registrado en la posición 2 del sim card.
   El enlace del programa cero se puede encontrar acá:
-  https://raw.githubusercontent.com/Yoimer/nodemcu/024b93692461c7eb7a8ec7e6d31e14319c261d68/programa-cero/programa-cero.ino
+  https://raw.githubusercontent.com/Yoimer/nodemcu/b731edd3bafc2de79cd517fb324269fd1d791981/programa-cero/programa-cero.ino
   el formato de mensaje es el siguiente:
 
   KEY,4 números que se desean guardar,
@@ -148,6 +148,8 @@ char contact[13];
 char phone[21];
 char message[100];
 int alarma = -1;
+int hasPassword = -1;
+
 
 void setup()
 {
@@ -426,38 +428,45 @@ void LastLineIsCMT()
     else if (lastLine.indexOf("999") >= 0)
     {
 
-      // Copia número en array phone
-      phonenum.toCharArray(phone, 21);
+      hasPassword = CheckPassword();
+      if (hasPassword == 1)
+      {
+        // Copia número en array phone
+        phonenum.toCharArray(phone, 21);
 
-      // Envía SMS de confirmación 
-      sendSMS(phone, "Alarma Activada");
+        // Envía SMS de confirmación 
+        sendSMS(phone, "Alarma Activada");
 
-      //activa alarma
-      alarma = 1;
-      Serial.print("alarma");
-      Serial.println(DEC, alarma);
-
+        //activa alarma
+        alarma = 1;
+        Serial.print("alarma");
+        Serial.println(DEC, alarma);
+      }
+      
     }
     // SMS para activar forzar relé
     else if (lastLine.indexOf("000") >= 0)
     {
+      hasPassword = CheckPassword();
+      if (hasPassword == 1)
+      {
+        // forza relé(led) en nodemcu
+        digitalWrite(LED_BUILTIN, LOW);
 
-      // forza relé(led) en nodemcu
-      digitalWrite(LED_BUILTIN, LOW);
+        // enciende relé físico en D2
+        digitalWrite(4, HIGH);
 
-      // enciende relé físico en D2
-      digitalWrite(4, HIGH);
+        // Copia número en array phone
+        phonenum.toCharArray(phone, 21);
 
-      // Copia número en array phone
-      phonenum.toCharArray(phone, 21);
+        // Envía SMS de confirmación 
+        sendSMS(phone, "RELE FORZADO");
 
-      // Envía SMS de confirmación 
-      sendSMS(phone, "RELE FORZADO");
-
-      // limpia la alarma
-      alarma = 0;
-      Serial.print("alarma");
-      Serial.println(DEC, alarma);
+        // limpia la alarma
+        alarma = 0;
+        Serial.print("alarma");
+        Serial.println(DEC, alarma);
+      }
     }
     else
     {
@@ -800,4 +809,32 @@ void CheckDistance()
       Serial.println(DEC, alarma);
 
     }
+}
+
+//**********************************************************
+
+// Función que verifica password
+
+int CheckPassword()
+{
+  int hasPassword = -1;
+  Serial.println("Verificando Password....");
+  Serial.println(lastLine);
+  firstComma    = lastLine.indexOf(',');
+  secondComma   = lastLine.indexOf(',', firstComma  + 1);
+  String InPassword = lastLine.substring((firstComma + 1), (secondComma));
+  Serial.println(InPassword);
+
+  if (InPassword == Password)
+  {
+    hasPassword = 1;
+    Serial.println("Password correcto");
+  }
+  else
+  {
+    hasPassword = 0;
+    Serial.println("Password incorrecto!!!");
+  }
+
+  return hasPassword;
 }
