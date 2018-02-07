@@ -248,7 +248,7 @@ void LastLineIsCMT()
     // SMS para ingresar clave
   if (lastLine.indexOf("KEY") >= 0)
     {
-		//deleteAllContacts();
+		deleteAllContacts();
 		addContact("2",phonenum);
 		addContact("1",key);
 		trama = "";
