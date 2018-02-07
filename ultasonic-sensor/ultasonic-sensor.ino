@@ -147,45 +147,13 @@ void setup()
 void loop()
 {
     // monitorea movimiento
-    CheckUltrasoundSensor();
+    //CheckUltrasoundSensor();
 
     // monitorea SIM800L
-    unsigned long previous = millis();
-    do
-    {
-        if (Serial.available() > 0)
-        {
-            char lastCharRead = Serial.read();
-            if (lastCharRead == '\r' || lastCharRead == '\n')
-            {
-                endOfLineReached();
-            }
-            else
-            {
-                currentLine[currentLineIndex++] = lastCharRead;
-            }
-        }
-    }while((millis() - previous) < 150);  // espera actividad serial por 150 milisegundos
+    CheckSIM800L();
 
-    // estudia condición de movimiento y alarma
-    if ((distance <= 30) && (alarma == 1))
-    {
-        // activa relé (logica inversa en nodemcu)
-        digitalWrite(LED_BUILTIN, LOW);
-
-        // Copia número en array phone
-        phonenum.toCharArray(phone, 21);
-
-        // Envía SMS de confirmación 
-        sendSMS(phone, "Alarma activada por movimiento");
-
-      //desactiva alarma
-      alarma = 0;
-      Serial.print("alarma");
-      Serial.println(DEC, alarma);
-
-    }
-
+    // monitorea distancia y activación de alarma via SMS
+    //CheckDistance();
 }
 
 ////////////////////////////////////////////////////
@@ -723,3 +691,52 @@ void LastLineIsCLIP()
 }
 
 //**********************************************************
+
+
+//**********************************************************
+
+// Función que procesa SIM800L
+void CheckSIM800L()
+{
+  unsigned long previous = millis();
+    do
+    {
+        if (Serial.available() > 0)
+        {
+            char lastCharRead = Serial.read();
+            if (lastCharRead == '\r' || lastCharRead == '\n')
+            {
+                endOfLineReached();
+            }
+            else
+            {
+                currentLine[currentLineIndex++] = lastCharRead;
+            }
+        }
+    }while((millis() - previous) < 150);  // espera actividad serial por 150 milisegundos
+}
+
+//**********************************************************
+
+// Función que procesa distancia
+
+void CheckDistance()
+{
+  if ((distance <= 30) && (alarma == 1))
+    {
+        // activa relé (logica inversa en nodemcu)
+        digitalWrite(LED_BUILTIN, LOW);
+
+        // Copia número en array phone
+        phonenum.toCharArray(phone, 21);
+
+        // Envía SMS de confirmación 
+        sendSMS(phone, "Alarma activada por movimiento");
+
+      //desactiva alarma
+      alarma = 0;
+      Serial.print("alarma");
+      Serial.println(DEC, alarma);
+
+    }
+}
