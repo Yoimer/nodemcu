@@ -1,6 +1,5 @@
 /* -------------------------------------------------------------conexiones----------------------------------------------- */
 
-
 /*fuente externa de 12VDC/3A a MP1584
 
 MP1584
@@ -68,12 +67,6 @@ MP1584
   que envía el mensaje queda registrado en la posición 2 del sim card.
   El enlace del programa cero se puede encontrar acá:
   https://raw.githubusercontent.com/Yoimer/nodemcu/b731edd3bafc2de79cd517fb324269fd1d791981/programa-cero/programa-cero.ino
-  el formato de mensaje es el siguiente:
-
-  KEY,4 números que se desean guardar,
-  por ejemplo el número 04168262668 envía el SMS KEY,7777,
-  en la posición 1 del sim se guarda la clave 7777
-  en la posición 2 el número 04168262668.
 
   solo los números guardados desde la posición 2 hasta la 5
   pueden agregar o borrar usuarios al systema (whitelist)
@@ -97,8 +90,28 @@ MP1584
 
 */
 
-/**/
+/////////comandos////////
 
+// LED ON,password,
+// activa relé en D2 (GPIO-4)
+
+// LED OFF,password,
+// desactiva relé en D2 (GPIO-4)
+
+// ADD,posicion,
+// agrega usuario 
+
+// DEL,posicion,
+// elimina usuario
+
+// 999,password,
+// activa alarma
+
+// 000,password,
+// enciende alarma (forza relé)
+
+// para apagar alarma
+// llamar al sim800
 
 #define TIMEOUT 30000
 
@@ -203,13 +216,13 @@ void setup()
 void loop()
 {
     // monitorea movimiento
-    //CheckUltrasoundSensor();
+    CheckUltrasoundSensor();
 
     // monitorea SIM800L
     CheckSIM800L();
 
     // monitorea distancia y activación de alarma via SMS
-    //CheckDistance();
+    CheckDistance();
 }
 
 ////////////////////////////////////////////////////
